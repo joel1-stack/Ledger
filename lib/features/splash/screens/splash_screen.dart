@@ -42,9 +42,14 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 8)),
+                    BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 8)),
                   ],
                 ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.asset('assets/icons/ledger.png', width: 100, height: 100, fit: BoxFit.contain),
+                ),
+              ),
                 child: const Icon(Icons.menu_book_rounded, size: 56, color: AppColors.primary),
               ),
               const SizedBox(height: 24),
