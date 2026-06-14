@@ -1,4 +1,4 @@
-package com.example.ledger
+package com.ledgerapp.ke
 
 import io.flutter.embedding.android.FlutterActivity
 

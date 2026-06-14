@@ -51,7 +51,15 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
     setState(() => _isLoading = true);
     try {
       await ref.read(phoneAuthProvider).verifyOTP(code);
-      if (mounted) context.go(RouteNames.profileSetup);
+      final user = ref.read(authServiceProvider).currentUser;
+      if (user != null) {
+        final profile = await ref.read(authServiceProvider).getUserProfile(user.uid);
+        if (mounted) {
+          context.go(profile != null ? RouteNames.home : RouteNames.profileSetup);
+        }
+      } else if (mounted) {
+        context.go(RouteNames.profileSetup);
+      }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid code. Please try again.')));
     } finally {
