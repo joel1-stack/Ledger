@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/auth_provider.dart';
-import '../../../shared/theme/app_strings.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../router/app_router.dart';
 
@@ -36,14 +35,17 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     if (!_isValid) return;
     setState(() => _isLoading = true);
     try {
-      await ref.read(authServiceProvider).sendOTP(
-        _phoneController.text,
-        codeSent: (verificationId, _) {
-          if (mounted) context.go(RouteNames.otpVerify, extra: {'vid': verificationId, 'phone': _phoneController.text});
-        },
-      );
+      final authService = ref.read(authServiceProvider);
+      final existing = await authService.loginWithPhone(_phoneController.text);
+      if (mounted) {
+        if (existing != null) {
+          context.go(RouteNames.groupList);
+        } else {
+          context.go(RouteNames.profileSetup, extra: _phoneController.text);
+        }
+      }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -77,9 +79,9 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              Text(AppStrings.enterPhone, style: AppTypography.headlineMedium, textAlign: TextAlign.center),
+              Text('Enter Your Phone', style: AppTypography.headlineMedium, textAlign: TextAlign.center),
               const SizedBox(height: 8),
-              Text("We'll send you a verification code",
+              Text('Use your phone number to login or create an account',
                   style: AppTypography.bodyLarge.copyWith(color: AppColors.textSecondary)),
               const SizedBox(height: 32),
               Container(
@@ -134,7 +136,7 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                     ),
                     child: _isLoading
                         ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                        : const Text(AppStrings.continueText, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ),

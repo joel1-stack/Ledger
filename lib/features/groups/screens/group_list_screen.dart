@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../core/services/firestore_service.dart';
-import '../../../core/models/user_model.dart';
 import '../../../shared/theme/app_strings.dart';
 import '../../../shared/widgets/app_loading.dart';
 import '../../../router/app_router.dart';
@@ -18,9 +16,8 @@ class GroupListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bypassUser = ref.watch(bypassUserProvider);
-    final authState = ref.watch(authStateProvider);
-    
+    final currentUser = ref.watch(currentUserProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -35,7 +32,9 @@ class GroupListScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: _buildBody(context, ref, authState, bypassUser),
+      body: currentUser == null
+          ? _buildEmptyState()
+          : _buildGroupsList(context, ref, currentUser.groupIds),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -67,32 +66,6 @@ class GroupListScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBody(BuildContext context, WidgetRef ref, AsyncValue<User?> authState, UserModel? bypassUser) {
-    if (bypassUser != null) {
-      return _buildGroupsList(context, ref, bypassUser.groupIds);
-    }
-    return authState.when(
-      data: (user) {
-        if (user == null) {
-          return _buildEmptyState();
-        }
-        final userProfile = ref.watch(userProfileProvider(user.uid));
-        return userProfile.when(
-          data: (profile) {
-            if (profile == null || profile.groupIds.isEmpty) {
-              return _buildEmptyState();
-            }
-            return _buildGroupsList(context, ref, profile.groupIds);
-          },
-          loading: () => const AppLoading(),
-          error: (_, _) => _buildEmptyState(),
-        );
-      },
-      loading: () => const AppLoading(),
-      error: (_, _) => _buildEmptyState(),
     );
   }
 

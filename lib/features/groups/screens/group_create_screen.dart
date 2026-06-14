@@ -106,8 +106,8 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
       });
       await service.addMember(group.id, {
         'userId': user.uid,
-        'phone': user.phoneNumber ?? '',
-        'name': user.displayName ?? 'Chairman',
+        'phone': user.phone,
+        'name': user.name,
         'role': 'chairman',
         'groupId': group.id,
         'memberNumber': 1,

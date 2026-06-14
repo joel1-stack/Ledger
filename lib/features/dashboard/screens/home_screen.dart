@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_illustrations.dart';
@@ -94,8 +93,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final eventsAsync = ref.watch(eventsProvider(groupId));
     final timelineAsync = ref.watch(timelineProvider(groupId));
     final approvalsAsync = ref.watch(pendingApprovalsProvider(groupId));
-    final currentUser = ref.watch(currentUserProvider);
-
     return group.when(
       data: (g) {
         if (g == null) return const Center(child: Text('Group not found'));
@@ -117,7 +114,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               : null,
           endDrawer: _buildDrawer(context, g, ref),
           body: _buildBody(g, membersAsync, contributionsAsync, eventsAsync, timelineAsync, approvalsAsync),
-          bottomNavigationBar: _buildBottomNav(membersAsync, currentUser),
+          bottomNavigationBar: _buildBottomNav(membersAsync),
         );
       },
       loading: () => const Scaffold(body: AppLoading(message: 'Loading group...')),
@@ -125,7 +122,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildBottomNav(AsyncValue<List<MemberModel>> membersAsync, User? currentUser) {
+  Widget _buildBottomNav(AsyncValue<List<MemberModel>> membersAsync) {
     final items = <BottomNavigationBarItem>[
       const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
       const BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Members'),
@@ -546,7 +543,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 'title': titleCtrl.text,
                 'message': msgCtrl.text,
                 'sentBy': ref.read(currentUserProvider)?.uid ?? '',
-                'sentByName': ref.read(currentUserProvider)?.displayName ?? '',
+                'sentByName': ref.read(currentUserProvider)?.name ?? '',
                 'sentAt': FieldValue.serverTimestamp(),
                 'readBy': [],
               });
