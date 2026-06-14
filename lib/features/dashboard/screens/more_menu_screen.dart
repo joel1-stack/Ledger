@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/approvals_provider.dart';
+import '../../../router/app_router.dart';
 import '../../events/screens/event_list_screen.dart';
 import '../../approvals/screens/approval_list_screen.dart';
 import '../../documents/screens/document_list_screen.dart';
@@ -37,11 +39,11 @@ class MoreMenuScreen extends ConsumerWidget {
           _buildMenuItem(context, Icons.help_outline, 'Help & Support', () {}),
           _buildMenuItem(context, Icons.swap_horiz, 'Switch Group', () {
             ref.read(currentGroupIdProvider.notifier).state = null;
-            Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+            context.go(RouteNames.splash);
           }),
           _buildMenuItem(context, Icons.logout, 'Log Out', () async {
             await ref.read(authServiceProvider).signOut();
-            if (context.mounted) Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+            if (context.mounted) context.go(RouteNames.splash);
           }),
         ],
       ),

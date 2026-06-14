@@ -57,7 +57,7 @@ class WelcomeScreen extends StatelessWidget {
                     ],
                   ),
                   child: ElevatedButton.icon(
-                    onPressed: () => context.go(RouteNames.phoneInput),
+                    onPressed: () => context.go(RouteNames.howItWorks),
                     icon: const Icon(Icons.arrow_forward_rounded),
                     label: const Text(AppStrings.getStarted),
                     style: ElevatedButton.styleFrom(
