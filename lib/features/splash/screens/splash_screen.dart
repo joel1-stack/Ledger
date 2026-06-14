@@ -35,46 +35,49 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Stack(
           children: [
             Positioned(
-              bottom: -80,
-              left: -40,
-              right: -40,
-              child: SvgPicture.network(
-                AppIllustrations.community,
-                width: double.infinity,
-                height: 300,
-                fit: BoxFit.contain,
-                placeholderBuilder: (_) => const SizedBox(),
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Opacity(
+                opacity: 0.15,
+                child: SvgPicture.network(
+                  AppIllustrations.community,
+                  width: double.infinity,
+                  height: 350,
+                  fit: BoxFit.contain,
+                  placeholderBuilder: (_) => const SizedBox(),
+                ),
               ),
             ),
             SafeArea(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Spacer(),
+                  const Spacer(flex: 2),
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 120,
+                    height: 120,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(28),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 8)),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 24, offset: const Offset(0, 10)),
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Image.asset('assets/icons/ledger.png', width: 100, height: 100, fit: BoxFit.contain),
+                      borderRadius: BorderRadius.circular(28),
+                      child: Image.asset('assets/icons/ledger.png', width: 120, height: 120, fit: BoxFit.contain),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  const Text('Ledger', style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: -0.5)),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 28),
+                  const Text('Ledger', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: -0.5)),
+                  const SizedBox(height: 12),
                   Text(
                     AppStrings.tagline,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.white.withValues(alpha: 0.9), height: 1.5),
                   ),
-                  const Spacer(),
+                  const Spacer(flex: 3),
                   const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)),
                   const SizedBox(height: 48),
                 ],

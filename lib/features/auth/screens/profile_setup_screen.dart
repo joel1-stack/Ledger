@@ -11,7 +11,8 @@ import '../../../router/app_router.dart';
 import '../../../shared/widgets/app_text_field.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
-  const ProfileSetupScreen({super.key});
+  final String? phone;
+  const ProfileSetupScreen({this.phone, super.key});
 
   @override
   ConsumerState<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
@@ -32,7 +33,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     if (name.length < 2) return;
     setState(() => _isLoading = true);
     try {
-      await ref.read(authServiceProvider).createUserProfile(name);
+      final authService = ref.read(authServiceProvider);
+      final phone = widget.phone ?? '+254712345678';
+      
+      if (authService.isBypassMode) {
+        await authService.bypassVerify('bypass', '12345', phone, name);
+      } else {
+        await authService.createUserProfile(name);
+      }
       if (mounted) context.go(RouteNames.groupList);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
@@ -53,13 +61,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             children: [
               const Spacer(),
               SizedBox(
-                width: 180,
-                height: 180,
+                width: 200,
+                height: 200,
                 child: SvgPicture.network(
                   AppIllustrations.profile,
                   fit: BoxFit.contain,
                   placeholderBuilder: (_) => Container(
-                    width: 100, height: 100,
+                    width: 120, height: 120,
                     decoration: BoxDecoration(
                       gradient: AppColors.secondaryGradient,
                       borderRadius: BorderRadius.circular(60),

@@ -9,6 +9,14 @@ final authStateProvider = StreamProvider<User?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
 });
 
+final bypassUserProvider = Provider<UserModel?>((ref) {
+  return ref.watch(authServiceProvider).bypassUser;
+});
+
+final isBypassModeProvider = Provider<bool>((ref) {
+  return ref.watch(authServiceProvider).isBypassMode;
+});
+
 final userProfileProvider = FutureProvider.family<UserModel?, String>((ref, uid) async {
   return ref.watch(authServiceProvider).getUserProfile(uid);
 });
@@ -24,15 +32,24 @@ class PhoneAuthHandler {
   PhoneAuthHandler(this._authService);
 
   String? _verificationId;
+  String? _phone;
 
   Future<void> sendOTP(String phone) async {
+    _phone = phone;
     await _authService.sendOTP(phone, codeSent: (verificationId, _) {
       _verificationId = verificationId;
     });
   }
 
-  Future<UserCredential> verifyOTP(String smsCode) async {
+  Future<dynamic> verifyOTP(String smsCode) async {
     if (_verificationId == null) throw Exception('No verification ID');
+    // Bypass mode: if verificationId starts with 'bypass_', accept any 6-digit code
+    if (_verificationId!.startsWith('bypass_')) {
+      return true; // Signal that bypass was used
+    }
     return await _authService.verifyOTP(_verificationId!, smsCode);
   }
+  
+  String? get phone => _phone;
+  String? get verificationId => _verificationId;
 }

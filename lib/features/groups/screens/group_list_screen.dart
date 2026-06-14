@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../core/services/firestore_service.dart';
+import '../../../core/models/user_model.dart';
 import '../../../shared/theme/app_strings.dart';
-import '../../../shared/widgets/app_empty_state.dart';
 import '../../../shared/widgets/app_loading.dart';
 import '../../../router/app_router.dart';
 
@@ -16,7 +18,9 @@ class GroupListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final bypassUser = ref.watch(bypassUserProvider);
     final authState = ref.watch(authStateProvider);
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -31,62 +35,7 @@ class GroupListScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: authState.when(
-        data: (user) {
-          if (user == null) {
-            return AppEmptyState(
-              title: AppStrings.noGroups,
-              subtitle: AppStrings.noGroupsSub,
-              illustrationUrl: AppIllustrations.emptyState,
-            );
-          }
-          final userProfile = ref.watch(userProfileProvider(user.uid));
-          return userProfile.when(
-            data: (profile) {
-              if (profile == null || profile.groupIds.isEmpty) {
-                return _buildEmptyState();
-              }
-              final groups = ref.watch(userGroupsProvider(profile.groupIds));
-              return groups.when(
-                data: (data) {
-                  if (data.isEmpty) return _buildEmptyState();
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: data.length,
-                    itemBuilder: (_, i) {
-                      final group = data[i];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          leading: CircleAvatar(
-                            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                            child: Text(group.name[0].toUpperCase(),
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
-                          ),
-                          title: Text(group.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                          subtitle: Text('${group.stats.totalMembers} members'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            ref.read(currentGroupIdProvider.notifier).state = group.id;
-                            context.go(RouteNames.home);
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
-                loading: () => const AppLoading(),
-                error: (_, _) => _buildEmptyState(),
-              );
-            },
-            loading: () => const AppLoading(),
-            error: (_, _) => _buildEmptyState(),
-          );
-        },
-        loading: () => const AppLoading(),
-        error: (_, _) => _buildEmptyState(),
-      ),
+      body: _buildBody(context, ref, authState, bypassUser),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -121,11 +70,94 @@ class GroupListScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildBody(BuildContext context, WidgetRef ref, AsyncValue<User?> authState, UserModel? bypassUser) {
+    if (bypassUser != null) {
+      return _buildGroupsList(context, ref, bypassUser.groupIds);
+    }
+    return authState.when(
+      data: (user) {
+        if (user == null) {
+          return _buildEmptyState();
+        }
+        final userProfile = ref.watch(userProfileProvider(user.uid));
+        return userProfile.when(
+          data: (profile) {
+            if (profile == null || profile.groupIds.isEmpty) {
+              return _buildEmptyState();
+            }
+            return _buildGroupsList(context, ref, profile.groupIds);
+          },
+          loading: () => const AppLoading(),
+          error: (_, _) => _buildEmptyState(),
+        );
+      },
+      loading: () => const AppLoading(),
+      error: (_, _) => _buildEmptyState(),
+    );
+  }
+
+  Widget _buildGroupsList(BuildContext context, WidgetRef ref, List<String> groupIds) {
+    if (groupIds.isEmpty) return _buildEmptyState();
+    final groups = ref.watch(userGroupsProvider(groupIds));
+    return groups.when(
+      data: (data) {
+        if (data.isEmpty) return _buildEmptyState();
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: data.length,
+          itemBuilder: (_, i) {
+            final group = data[i];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: ListTile(
+                contentPadding: const EdgeInsets.all(16),
+                leading: CircleAvatar(
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                  child: Text(group.name[0].toUpperCase(),
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                ),
+                title: Text(group.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text('${group.stats.totalMembers} members'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  ref.read(currentGroupIdProvider.notifier).state = group.id;
+                  context.go(RouteNames.home);
+                },
+              ),
+            );
+          },
+        );
+      },
+      loading: () => const AppLoading(),
+      error: (_, _) => _buildEmptyState(),
+    );
+  }
+
   Widget _buildEmptyState() {
-    return AppEmptyState(
-      title: AppStrings.noGroups,
-      subtitle: AppStrings.noGroupsSub,
-      illustrationUrl: AppIllustrations.community,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.network(
+              AppIllustrations.community,
+              width: 200, height: 200,
+              placeholderBuilder: (_) => Container(
+                width: 100, height: 100,
+                decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(24)),
+                child: const Icon(Icons.group_rounded, size: 48, color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 32),
+            const Text(AppStrings.noGroups, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(AppStrings.noGroupsSub,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textSecondary)),
+          ],
+        ),
+      ),
     );
   }
 

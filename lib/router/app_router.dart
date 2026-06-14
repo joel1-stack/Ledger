@@ -31,8 +31,20 @@ final appRouter = GoRouter(
     GoRoute(path: RouteNames.welcome, builder: (_, _) => const WelcomeScreen()),
     GoRoute(path: RouteNames.howItWorks, builder: (_, _) => const HowItWorksScreen()),
     GoRoute(path: RouteNames.phoneInput, builder: (_, _) => const PhoneInputScreen()),
-    GoRoute(path: RouteNames.otpVerify, builder: (_, state) => OtpVerifyScreen(verificationId: state.extra as String)),
-    GoRoute(path: RouteNames.profileSetup, builder: (_, _) => const ProfileSetupScreen()),
+    GoRoute(
+      path: RouteNames.otpVerify,
+      builder: (_, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return OtpVerifyScreen(
+          verificationId: extra['vid'] as String,
+          phone: extra['phone'] as String,
+        );
+      },
+    ),
+    GoRoute(
+      path: RouteNames.profileSetup,
+      builder: (_, state) => ProfileSetupScreen(phone: state.extra as String?),
+    ),
     GoRoute(path: RouteNames.groupList, builder: (_, _) => const GroupListScreen()),
     GoRoute(path: RouteNames.groupCreate, builder: (_, _) => const GroupCreateScreen()),
     GoRoute(path: RouteNames.inviteMembers, builder: (_, state) => InviteMembersScreen(groupId: state.extra as String)),

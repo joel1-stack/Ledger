@@ -27,4 +27,11 @@ class AppIllustrations {
   static const String dashboard = '$baseUrl/dashboard_nklg.svg';
   static const String timeline = '$baseUrl/schedule_pnbk.svg';
   static const String teamWork = '$baseUrl/team_spirit_hrr4.svg';
+  static const String welcome = '$baseUrl/community_8nwl.svg';
+  static const String authPhone = '$baseUrl/mobile_apps_4wgf.svg';
+  static const String authOtp = '$baseUrl/security_o890.svg';
+  static const String authProfile = '$baseUrl/profile_pic_ic5t.svg';
+  static const String groupCreate = '$baseUrl/group_chat_v059.svg';
+  static const String groupJoin = '$baseUrl/team_spirit_hrr4.svg';
+  static const String recordPayment = '$baseUrl/mobile_payments_edgf.svg';
 }

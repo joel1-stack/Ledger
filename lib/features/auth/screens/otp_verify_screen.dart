@@ -11,7 +11,8 @@ import '../../../router/app_router.dart';
 
 class OtpVerifyScreen extends ConsumerStatefulWidget {
   final String verificationId;
-  const OtpVerifyScreen({required this.verificationId, super.key});
+  final String phone;
+  const OtpVerifyScreen({required this.verificationId, required this.phone, super.key});
 
   @override
   ConsumerState<OtpVerifyScreen> createState() => _OtpVerifyScreenState();
@@ -50,15 +51,29 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
     if (code.length < 6) return;
     setState(() => _isLoading = true);
     try {
-      await ref.read(phoneAuthProvider).verifyOTP(code);
-      final user = ref.read(authServiceProvider).currentUser;
-      if (user != null) {
-        final profile = await ref.read(authServiceProvider).getUserProfile(user.uid);
-        if (mounted) {
-          context.go(profile != null ? RouteNames.home : RouteNames.profileSetup);
+      final result = await ref.read(phoneAuthProvider).verifyOTP(code);
+      final isBypass = result == true;
+      
+      if (isBypass) {
+        // Bypass mode - check if user exists by phone
+        final authService = ref.read(authServiceProvider);
+        final bypassUser = authService.bypassUser;
+        if (bypassUser != null && mounted) {
+          context.go(RouteNames.profileSetup, extra: widget.phone);
+        } else if (mounted) {
+          context.go(RouteNames.profileSetup, extra: widget.phone);
         }
-      } else if (mounted) {
-        context.go(RouteNames.profileSetup);
+      } else {
+        // Real Firebase auth
+        final user = ref.read(authServiceProvider).currentUser;
+        if (user != null) {
+          final profile = await ref.read(authServiceProvider).getUserProfile(user.uid);
+          if (mounted) {
+            context.go(profile != null ? RouteNames.home : RouteNames.profileSetup, extra: widget.phone);
+          }
+        } else if (mounted) {
+          context.go(RouteNames.profileSetup, extra: widget.phone);
+        }
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid code. Please try again.')));
@@ -69,9 +84,10 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final phoneDisplay = widget.phone.replaceAll('+254', '0');
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text(''), backgroundColor: Colors.transparent),
+      appBar: AppBar(title: const Text(''), backgroundColor: Colors.transparent, elevation: 0),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -79,13 +95,13 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
             children: [
               const Spacer(),
               SizedBox(
-                width: 180,
-                height: 180,
+                width: 200,
+                height: 200,
                 child: SvgPicture.network(
                   AppIllustrations.security,
                   fit: BoxFit.contain,
                   placeholderBuilder: (_) => Container(
-                    width: 100, height: 100,
+                    width: 120, height: 120,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(colors: [AppColors.info, Color(0xFF2563EB)]),
                       borderRadius: BorderRadius.circular(30),
@@ -98,7 +114,10 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
               Text(AppStrings.verifyPhone, style: AppTypography.headlineMedium, textAlign: TextAlign.center),
               const SizedBox(height: 8),
               Text('Enter the 6-digit code sent to', style: AppTypography.bodyLarge.copyWith(color: AppColors.textSecondary)),
-              Text('+254 712 345 678', style: AppTypography.headlineSmall.copyWith(color: AppColors.primary)),
+              Text(phoneDisplay, style: AppTypography.headlineSmall.copyWith(color: AppColors.primary)),
+              const SizedBox(height: 8),
+              Text('(Use 12345 in demo mode)',
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.warning)),
               const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -121,14 +140,14 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                       buildCounter: (_, {required int currentLength, required bool isFocused, required int? maxLength}) => null,
                       decoration: const InputDecoration(border: InputBorder.none, counterText: ''),
                       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                      onChanged: (value) { if (value.length == 6) _verify(); },
+                      onChanged: (value) { if (value.length == 6) _verify(); setState(() {}); },
                     ),
                   );
                 }),
               ),
               const SizedBox(height: 24),
               TextButton(
-                onPressed: _resendSeconds == 0 ? () {} : null,
+                onPressed: _resendSeconds == 0 ? () => ref.read(phoneAuthProvider).sendOTP(widget.phone) : null,
                 child: Text(
                   _resendSeconds > 0 ? 'Resend in $_resendSeconds s' : 'Resend Code',
                   style: TextStyle(

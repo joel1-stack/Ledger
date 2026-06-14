@@ -39,7 +39,7 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
       await ref.read(authServiceProvider).sendOTP(
         _phoneController.text,
         codeSent: (verificationId, _) {
-          if (mounted) context.go(RouteNames.otpVerify, extra: verificationId);
+          if (mounted) context.go(RouteNames.otpVerify, extra: {'vid': verificationId, 'phone': _phoneController.text});
         },
       );
     } catch (e) {
@@ -61,13 +61,13 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
             children: [
               const Spacer(),
               SizedBox(
-                width: 180,
-                height: 180,
+                width: 200,
+                height: 200,
                 child: SvgPicture.network(
                   AppIllustrations.mobileApp,
                   fit: BoxFit.contain,
                   placeholderBuilder: (_) => Container(
-                    width: 100, height: 100,
+                    width: 120, height: 120,
                     decoration: BoxDecoration(
                       gradient: AppColors.primaryGradient,
                       borderRadius: BorderRadius.circular(30),
