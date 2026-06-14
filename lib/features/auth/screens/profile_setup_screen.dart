@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../shared/theme/app_strings.dart';
 import '../../../shared/theme/app_typography.dart';
@@ -50,17 +52,21 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           child: Column(
             children: [
               const Spacer(),
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  gradient: AppColors.secondaryGradient,
-                  borderRadius: BorderRadius.circular(60),
-                  boxShadow: [
-                    BoxShadow(color: AppColors.secondary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8)),
-                  ],
+              SizedBox(
+                width: 180,
+                height: 180,
+                child: SvgPicture.network(
+                  AppIllustrations.profile,
+                  fit: BoxFit.contain,
+                  placeholderBuilder: (_) => Container(
+                    width: 100, height: 100,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.secondaryGradient,
+                      borderRadius: BorderRadius.circular(60),
+                    ),
+                    child: const Icon(Icons.person_add_rounded, size: 56, color: Colors.white),
+                  ),
                 ),
-                child: const Icon(Icons.person_add_rounded, size: 56, color: Colors.white),
               ),
               const SizedBox(height: 8),
               TextButton.icon(
@@ -85,7 +91,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: _nameController.text.trim().length >= 2
-                        ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6))]
+                        ? [BoxShadow(color: AppColors.primary, blurRadius: 12, offset: const Offset(0, 6))]
                         : null,
                   ),
                   child: ElevatedButton(

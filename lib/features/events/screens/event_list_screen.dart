@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/events_provider.dart';
-import '../../../core/models/event_model.dart';
 import '../../../core/utils/currency_format.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../shared/widgets/app_loading.dart';
@@ -21,7 +20,7 @@ class EventListScreen extends ConsumerWidget {
       body: events.when(
         data: (data) {
           if (data.isEmpty) {
-            return const AppEmptyState(title: 'No Events', subtitle: 'Create an event when something happens', icon: Icons.event_outlined);
+            return const AppEmptyState(title: 'No Events', subtitle: 'Create an event when something happens');
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),

@@ -7,7 +7,6 @@ import '../../../core/providers/group_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/utils/id_generator.dart';
-import '../../../shared/theme/app_strings.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../router/app_router.dart';
@@ -23,7 +22,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
   int _step = 1;
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
-  List<Map<String, dynamic>> _contributionTypes = [];
+  final List<Map<String, dynamic>> _contributionTypes = [];
   bool _isLoading = false;
 
   @override
@@ -52,7 +51,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                 TextField(controller: amountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Amount (KES)')),
                 const SizedBox(height: 12),
                 DropdownButtonFormField(
-                  value: frequency,
+                  initialValue: frequency,
                   items: ['monthly', 'weekly', 'one-time', 'as-needed'].map((f) => DropdownMenuItem(value: f, child: Text(f[0].toUpperCase() + f.substring(1)))).toList(),
                   onChanged: (v) => setDialogState(() => frequency = v!),
                   decoration: const InputDecoration(labelText: 'Frequency'),

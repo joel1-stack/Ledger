@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../core/providers/members_provider.dart';
 import '../../../core/providers/contributions_provider.dart';
-import '../../../core/utils/currency_format.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../shared/widgets/app_button.dart';
-import '../../../shared/widgets/app_loading.dart';
 
 class GenerateReportScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -92,6 +91,7 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
 
       if (mounted) {
         await Share.shareXFiles([XFile(file.path)]);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report generated and shared')));
       }
     } catch (e) {
@@ -106,11 +106,29 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(title: const Text('Generate Report')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: SizedBox(
+                width: 140, height: 140,
+                child: SvgPicture.network(
+                  AppIllustrations.report,
+                  fit: BoxFit.contain,
+                  placeholderBuilder: (_) => Container(
+                    width: 80, height: 80,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(Icons.description, size: 40, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             const Text('Report Type', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Text(widget.reportType, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
@@ -121,7 +139,7 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<int>(
-                    value: _selectedMonth,
+                    initialValue: _selectedMonth,
                     items: List.generate(12, (i) => DropdownMenuItem(value: i + 1, child: Text(DateFormat('MMMM').format(DateTime(2024, i + 1))))),
                     onChanged: (v) => setState(() => _selectedMonth = v!),
                     decoration: const InputDecoration(labelText: 'Month'),
@@ -130,7 +148,7 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: DropdownButtonFormField<int>(
-                    value: _selectedYear,
+                    initialValue: _selectedYear,
                     items: List.generate(5, (i) => DropdownMenuItem(value: DateTime.now().year - i, child: Text('${DateTime.now().year - i}'))),
                     onChanged: (v) => setState(() => _selectedYear = v!),
                     decoration: const InputDecoration(labelText: 'Year'),
@@ -138,7 +156,7 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
                 ),
               ],
             ),
-            const Spacer(),
+            const SizedBox(height: 32),
             AppButton(
               label: 'Generate Report',
               icon: Icons.description,

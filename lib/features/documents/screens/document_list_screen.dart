@@ -5,7 +5,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/other_providers.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/firestore_service.dart';
-import '../../../core/models/document_model.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../shared/widgets/app_loading.dart';
 import '../../../shared/widgets/app_empty_state.dart';
@@ -31,7 +30,7 @@ class DocumentListScreen extends ConsumerWidget {
       body: documents.when(
         data: (data) {
           if (data.isEmpty) {
-            return const AppEmptyState(title: 'No Documents', subtitle: 'Upload receipts, minutes, and reports', icon: Icons.folder_outlined);
+            return const AppEmptyState(title: 'No Documents', subtitle: 'Upload receipts, minutes, and reports');
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),

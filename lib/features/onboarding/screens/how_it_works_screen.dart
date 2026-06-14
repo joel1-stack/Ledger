@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../router/app_router.dart';
 
@@ -17,20 +19,17 @@ class _HowItWorksScreenState extends State<HowItWorksScreen> {
 
   final _pages = [
     _OnboardingPage(
-      icon: Icons.group_add_rounded,
-      gradient: AppColors.primaryGradient,
+      illustration: AppIllustrations.teamWork,
       title: 'Create Your Group',
       description: 'Set your rules, contribution types, and invite members in minutes.',
     ),
     _OnboardingPage(
-      icon: Icons.account_balance_wallet_rounded,
-      gradient: AppColors.secondaryGradient,
+      illustration: AppIllustrations.wallet,
       title: 'Record Contributions',
       description: 'Track who paid, when, and how much. No more lost notebooks.',
     ),
     _OnboardingPage(
-      icon: Icons.timeline_rounded,
-      gradient: AppColors.accentGradient,
+      illustration: AppIllustrations.timeline,
       title: 'Never Lose Memory',
       description: 'Every payment, approval, and decision is recorded forever.',
     ),
@@ -61,17 +60,21 @@ class _HowItWorksScreenState extends State<HowItWorksScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            gradient: page.gradient,
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 8)),
-                            ],
+                        SizedBox(
+                          width: 220,
+                          height: 220,
+                          child: SvgPicture.network(
+                            page.illustration,
+                            fit: BoxFit.contain,
+                            placeholderBuilder: (_) => Container(
+                              width: 120, height: 120,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryLight,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: const Icon(Icons.rocket_launch_rounded, size: 56, color: AppColors.primary),
+                            ),
                           ),
-                          child: Icon(page.icon, size: 56, color: Colors.white),
                         ),
                         const SizedBox(height: 40),
                         Text(page.title, style: AppTypography.headlineMedium, textAlign: TextAlign.center),
@@ -114,7 +117,7 @@ class _HowItWorksScreenState extends State<HowItWorksScreen> {
                     gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
-                      BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6)),
+                      BoxShadow(color: AppColors.primary, blurRadius: 12, offset: const Offset(0, 6)),
                     ],
                   ),
                   child: ElevatedButton(
@@ -141,9 +144,8 @@ class _HowItWorksScreenState extends State<HowItWorksScreen> {
 }
 
 class _OnboardingPage {
-  final IconData icon;
-  final LinearGradient gradient;
+  final String illustration;
   final String title;
   final String description;
-  _OnboardingPage({required this.icon, required this.gradient, required this.title, required this.description});
+  _OnboardingPage({required this.illustration, required this.title, required this.description});
 }

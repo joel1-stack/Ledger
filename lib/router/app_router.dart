@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/splash/screens/splash_screen.dart';
 import '../features/onboarding/screens/welcome_screen.dart';
@@ -28,15 +27,15 @@ class RouteNames {
 final appRouter = GoRouter(
   initialLocation: RouteNames.splash,
   routes: [
-    GoRoute(path: RouteNames.splash, builder: (_, __) => const SplashScreen()),
-    GoRoute(path: RouteNames.welcome, builder: (_, __) => const WelcomeScreen()),
-    GoRoute(path: RouteNames.howItWorks, builder: (_, __) => const HowItWorksScreen()),
-    GoRoute(path: RouteNames.phoneInput, builder: (_, __) => const PhoneInputScreen()),
+    GoRoute(path: RouteNames.splash, builder: (_, _) => const SplashScreen()),
+    GoRoute(path: RouteNames.welcome, builder: (_, _) => const WelcomeScreen()),
+    GoRoute(path: RouteNames.howItWorks, builder: (_, _) => const HowItWorksScreen()),
+    GoRoute(path: RouteNames.phoneInput, builder: (_, _) => const PhoneInputScreen()),
     GoRoute(path: RouteNames.otpVerify, builder: (_, state) => OtpVerifyScreen(verificationId: state.extra as String)),
-    GoRoute(path: RouteNames.profileSetup, builder: (_, __) => const ProfileSetupScreen()),
-    GoRoute(path: RouteNames.groupList, builder: (_, __) => const GroupListScreen()),
-    GoRoute(path: RouteNames.groupCreate, builder: (_, __) => const GroupCreateScreen()),
+    GoRoute(path: RouteNames.profileSetup, builder: (_, _) => const ProfileSetupScreen()),
+    GoRoute(path: RouteNames.groupList, builder: (_, _) => const GroupListScreen()),
+    GoRoute(path: RouteNames.groupCreate, builder: (_, _) => const GroupCreateScreen()),
     GoRoute(path: RouteNames.inviteMembers, builder: (_, state) => InviteMembersScreen(groupId: state.extra as String)),
-    GoRoute(path: RouteNames.home, builder: (_, __) => const HomeScreen()),
+    GoRoute(path: RouteNames.home, builder: (_, _) => const HomeScreen()),
   ],
 );

@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/approvals_provider.dart';
-import '../../../core/providers/members_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/enums/approval_status.dart';
-import '../../../core/models/approval_model.dart';
-import '../../../core/models/member_model.dart';
 import '../../../core/utils/currency_format.dart';
-import '../../../core/utils/date_helpers.dart';
 import '../../../shared/widgets/app_loading.dart';
 import '../../../shared/widgets/app_empty_state.dart';
 
@@ -27,7 +23,7 @@ class ApprovalListScreen extends ConsumerWidget {
       body: approvals.when(
         data: (data) {
           if (data.isEmpty) {
-            return const AppEmptyState(title: 'No Approvals', subtitle: 'All decisions are clear', icon: Icons.verified_user_outlined);
+            return const AppEmptyState(title: 'No Approvals', subtitle: 'All decisions are clear');
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -119,7 +115,6 @@ class ApprovalListScreen extends ConsumerWidget {
       case ApprovalStatus.pending: return Icons.hourglass_empty;
       case ApprovalStatus.approved: return Icons.check_circle;
       case ApprovalStatus.rejected: return Icons.cancel;
-      default: return Icons.help_outline;
     }
   }
 
@@ -128,7 +123,6 @@ class ApprovalListScreen extends ConsumerWidget {
       case ApprovalStatus.pending: return AppColors.warning;
       case ApprovalStatus.approved: return AppColors.success;
       case ApprovalStatus.rejected: return AppColors.error;
-      default: return AppColors.textSecondary;
     }
   }
 }

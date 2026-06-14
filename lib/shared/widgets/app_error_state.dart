@@ -5,7 +5,7 @@ class AppErrorState extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
 
-  const AppErrorState({required this.message, this.onRetry});
+  const AppErrorState({super.key, required this.message, this.onRetry});
 
   @override
   Widget build(BuildContext context) {

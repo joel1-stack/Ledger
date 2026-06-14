@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/members_provider.dart';
 import '../../../core/providers/contributions_provider.dart';
-import '../../../core/models/member_model.dart';
-import '../../../core/models/contribution_record_model.dart';
 import '../../../core/utils/currency_format.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../shared/widgets/app_loading.dart';

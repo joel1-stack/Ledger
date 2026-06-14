@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/group_provider.dart';
-import '../../../core/services/firestore_service.dart';
-import '../../../shared/widgets/app_button.dart';
 
 class GroupSettingsScreen extends ConsumerStatefulWidget {
   final String groupId;

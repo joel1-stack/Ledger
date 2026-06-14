@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../shared/theme/app_strings.dart';
 import '../../../shared/theme/app_typography.dart';
@@ -31,7 +33,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
       await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return false;
       setState(() {
-        if (_resendSeconds > 0) { _resendSeconds--; }
+        if (_resendSeconds > 0) _resendSeconds--;
       });
       return _resendSeconds > 0;
     });
@@ -68,17 +70,21 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
           child: Column(
             children: [
               const Spacer(),
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  gradient: AppColors.accentGradient,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(color: AppColors.info.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8)),
-                  ],
+              SizedBox(
+                width: 180,
+                height: 180,
+                child: SvgPicture.network(
+                  AppIllustrations.security,
+                  fit: BoxFit.contain,
+                  placeholderBuilder: (_) => Container(
+                    width: 100, height: 100,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: [AppColors.info, Color(0xFF2563EB)]),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: const Icon(Icons.lock_outline_rounded, size: 56, color: Colors.white),
+                  ),
                 ),
-                child: const Icon(Icons.lock_outline_rounded, size: 56, color: Colors.white),
               ),
               const SizedBox(height: 40),
               Text(AppStrings.verifyPhone, style: AppTypography.headlineMedium, textAlign: TextAlign.center),
@@ -133,7 +139,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                     gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: _codeController.text.length >= 6
-                        ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6))]
+                        ? [BoxShadow(color: AppColors.primary, blurRadius: 12, offset: const Offset(0, 6))]
                         : null,
                   ),
                   child: ElevatedButton(

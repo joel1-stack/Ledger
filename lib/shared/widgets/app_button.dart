@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
 
 class AppButton extends StatelessWidget {
   final String label;
@@ -10,6 +9,7 @@ class AppButton extends StatelessWidget {
   final Color? color;
 
   const AppButton({
+    super.key,
     required this.label,
     this.onPressed,
     this.isLoading = false,

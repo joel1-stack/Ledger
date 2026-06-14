@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../router/app_router.dart';
 
@@ -23,10 +25,20 @@ class InviteMembersScreen extends ConsumerWidget {
             child: Column(
               children: [
                 const Spacer(),
-                Container(
-                  width: 100, height: 100,
-                  decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(50)),
-                  child: const Icon(Icons.check_circle_outline, size: 48, color: AppColors.success),
+                SizedBox(
+                  width: 180, height: 180,
+                  child: SvgPicture.network(
+                    AppIllustrations.confirmation,
+                    fit: BoxFit.contain,
+                    placeholderBuilder: (_) => Container(
+                      width: 100, height: 100,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: const Icon(Icons.check_circle_outline, size: 56, color: Colors.white),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 const Text('Group Created!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
@@ -67,7 +79,7 @@ class InviteMembersScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Error loading group')),
+        error: (_, _) => const Center(child: Text('Error loading group')),
       ),
     );
   }

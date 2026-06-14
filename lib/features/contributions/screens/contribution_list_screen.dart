@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/contributions_provider.dart';
-import '../../../core/providers/members_provider.dart';
-import '../../../core/providers/group_provider.dart';
-import '../../../core/models/contribution_record_model.dart';
-import '../../../core/models/contribution_type_model.dart';
 import '../../../core/utils/currency_format.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../shared/widgets/app_loading.dart';
@@ -79,7 +75,7 @@ class ContributionListScreen extends ConsumerWidget {
                   ),
                 ),
                 loading: () => const SizedBox(),
-                error: (_, __) => const SizedBox(),
+                error: (_, _) => const SizedBox(),
               ),
 
               Padding(
@@ -95,7 +91,7 @@ class ContributionListScreen extends ConsumerWidget {
 
               Expanded(
                 child: data.isEmpty
-                    ? const AppEmptyState(title: 'No Contributions', subtitle: 'Record your first payment', icon: Icons.payments_outlined)
+                    ? const AppEmptyState(title: 'No Contributions', subtitle: 'Record your first payment')
                     : ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: data.length,

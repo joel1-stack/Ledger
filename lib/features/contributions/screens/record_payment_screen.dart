@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/contributions_provider.dart';
 import '../../../core/providers/members_provider.dart';
-import '../../../core/providers/group_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../shared/widgets/app_button.dart';
@@ -83,24 +82,24 @@ class _RecordPaymentScreenState extends ConsumerState<RecordPaymentScreen> {
           children: [
             types.when(
               data: (typeList) => DropdownButtonFormField(
-                value: _selectedTypeId,
+                initialValue: _selectedTypeId,
                 items: typeList.map((t) => DropdownMenuItem(value: t.id, child: Text('${t.name} — ${t.amount > 0 ? "KES ${t.amount.toStringAsFixed(0)}" : "Open"}'))).toList(),
                 onChanged: (v) => setState(() => _selectedTypeId = v),
                 decoration: const InputDecoration(labelText: 'Contribution Type *'),
               ),
               loading: () => const SizedBox(height: 60, child: AppLoading()),
-              error: (_, __) => const Text('Error loading types'),
+              error: (_, _) => const Text('Error loading types'),
             ),
             const SizedBox(height: 16),
             members.when(
               data: (memberList) => DropdownButtonFormField(
-                value: _selectedMemberId,
+                initialValue: _selectedMemberId,
                 items: memberList.map((m) => DropdownMenuItem(value: m.id, child: Text(m.name))).toList(),
                 onChanged: (v) => setState(() => _selectedMemberId = v),
                 decoration: const InputDecoration(labelText: 'Member *'),
               ),
               loading: () => const SizedBox(height: 60, child: AppLoading()),
-              error: (_, __) => const Text('Error loading members'),
+              error: (_, _) => const Text('Error loading members'),
             ),
             const SizedBox(height: 16),
             TextField(

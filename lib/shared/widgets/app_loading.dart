@@ -4,7 +4,7 @@ import '../../core/constants/app_colors.dart';
 class AppLoading extends StatelessWidget {
   final String? message;
 
-  const AppLoading({this.message});
+  const AppLoading({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {

@@ -28,7 +28,6 @@ class TimelineScreen extends ConsumerWidget {
             return const AppEmptyState(
               title: 'No Activity Yet',
               subtitle: 'Every payment, approval, and decision will appear here forever.',
-              icon: Icons.timeline_outlined,
             );
           }
 

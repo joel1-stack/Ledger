@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
+import '../../../router/app_router.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/members_provider.dart';
@@ -21,20 +26,13 @@ import '../../../core/utils/date_helpers.dart';
 import '../../../shared/widgets/summary_card.dart';
 import '../../../shared/widgets/quick_action_card.dart';
 import '../../../shared/widgets/app_loading.dart';
-import '../../../shared/theme/app_strings.dart';
-import '../../../shared/theme/app_typography.dart';
 import '../../members/screens/member_list_screen.dart';
-import '../../members/screens/member_detail_screen.dart';
 import '../../contributions/screens/contribution_list_screen.dart';
 import '../../contributions/screens/record_payment_screen.dart';
 import '../../timeline/screens/timeline_screen.dart';
 import '../../events/screens/create_event_screen.dart';
-import '../../events/screens/event_list_screen.dart';
 import '../../approvals/screens/approval_list_screen.dart';
-import '../../reports/screens/report_list_screen.dart';
 import '../../reports/screens/generate_report_screen.dart';
-import '../../documents/screens/document_list_screen.dart';
-import '../../groups/screens/group_settings_screen.dart';
 import '../../dashboard/screens/more_menu_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -52,8 +50,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final groupId = ref.watch(currentGroupIdProvider);
     if (groupId == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Ledger')),
-        body: const Center(child: Text('Select a group first')),
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.network(
+                  AppIllustrations.dashboard,
+                  width: 200, height: 200,
+                  placeholderBuilder: (_) => Container(
+                    width: 100, height: 100,
+                    decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(24)),
+                    child: const Icon(Icons.group_rounded, size: 48, color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                const Text('No Group Selected', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('Create or join a group to get started',
+                    style: TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => context.go(RouteNames.groupList),
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text('Go to Groups'),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -63,6 +91,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final eventsAsync = ref.watch(eventsProvider(groupId));
     final timelineAsync = ref.watch(timelineProvider(groupId));
     final approvalsAsync = ref.watch(pendingApprovalsProvider(groupId));
+    final currentUser = ref.watch(currentUserProvider);
 
     return group.when(
       data: (g) {
@@ -79,21 +108,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 )
               : null,
           body: _buildBody(g, membersAsync, contributionsAsync, eventsAsync, timelineAsync, approvalsAsync),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (i) => setState(() => _currentIndex = i),
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Members'),
-              BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), activeIcon: Icon(Icons.account_balance_wallet), label: 'Contrib'),
-              BottomNavigationBarItem(icon: Icon(Icons.timeline_outlined), activeIcon: Icon(Icons.timeline), label: 'Timeline'),
-              BottomNavigationBarItem(icon: Icon(Icons.more_horiz), activeIcon: Icon(Icons.more_horiz), label: 'More'),
-            ],
-          ),
+          bottomNavigationBar: _buildBottomNav(membersAsync, currentUser),
         );
       },
       loading: () => const Scaffold(body: AppLoading(message: 'Loading group...')),
       error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
+    );
+  }
+
+  Widget _buildBottomNav(AsyncValue<List<MemberModel>> membersAsync, User? currentUser) {
+    final items = <BottomNavigationBarItem>[
+      const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
+      const BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Members'),
+      const BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), activeIcon: Icon(Icons.account_balance_wallet), label: 'Contrib'),
+      const BottomNavigationBarItem(icon: Icon(Icons.timeline_outlined), activeIcon: Icon(Icons.timeline), label: 'Timeline'),
+      const BottomNavigationBarItem(icon: Icon(Icons.more_horiz), activeIcon: Icon(Icons.more_horiz), label: 'More'),
+    ];
+
+    final maxIdx = items.length - 1;
+
+    return BottomNavigationBar(
+      currentIndex: _currentIndex > maxIdx ? maxIdx : _currentIndex,
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: AppColors.textTertiary,
+      onTap: (i) => setState(() => _currentIndex = i),
+      items: items,
     );
   }
 
@@ -131,8 +171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   ) {
     final pendingApprovals = approvalsAsync.asData?.value ?? [];
     final recentTimeline = timelineAsync.asData?.value ?? [];
-    final recentContributions = contributionsAsync.asData?.value ?? [];
-    final activeEvents = eventsAsync.asData?.value?.where((e) => e.status == 'active').toList() ?? [];
+    final activeEvents = eventsAsync.asData?.value.where((e) => e.status == 'active').toList() ?? [];
 
     return RefreshIndicator(
       onRefresh: () => Future.delayed(const Duration(seconds: 1)),

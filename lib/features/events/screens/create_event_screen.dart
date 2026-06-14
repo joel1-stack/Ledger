@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/providers/events_provider.dart';
-import '../../../core/providers/group_provider.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/providers/auth_provider.dart';
-import '../../../core/models/event_model.dart';
-import '../../../core/utils/currency_format.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
-import '../../../shared/widgets/app_loading.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
   final String groupId;

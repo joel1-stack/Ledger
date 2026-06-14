@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
 import '../../../shared/theme/app_strings.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../router/app_router.dart';
@@ -18,17 +20,21 @@ class WelcomeScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-              Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(36),
-                  boxShadow: [
-                    BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 24, offset: const Offset(0, 12)),
-                  ],
+              SizedBox(
+                width: 200,
+                height: 200,
+                child: SvgPicture.network(
+                  AppIllustrations.community,
+                  fit: BoxFit.contain,
+                  placeholderBuilder: (_) => Container(
+                    width: 120, height: 120,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(36),
+                    ),
+                    child: const Icon(Icons.people_alt_rounded, size: 72, color: Colors.white),
+                  ),
                 ),
-                child: const Icon(Icons.people_alt_rounded, size: 72, color: Colors.white),
               ),
               const SizedBox(height: 40),
               Text(AppStrings.welcomeTitle, style: AppTypography.headlineLarge),
@@ -47,7 +53,7 @@ class WelcomeScreen extends StatelessWidget {
                     gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
-                      BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6)),
+                      BoxShadow(color: AppColors.primary, blurRadius: 12, offset: const Offset(0, 6)),
                     ],
                   ),
                   child: ElevatedButton.icon(

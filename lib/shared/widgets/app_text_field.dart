@@ -16,6 +16,7 @@ class AppTextField extends StatelessWidget {
   final int maxLines;
 
   const AppTextField({
+    super.key,
     required this.controller,
     this.label,
     this.hint,

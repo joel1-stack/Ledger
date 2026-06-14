@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/enums/member_role.dart';
 import '../../../core/providers/members_provider.dart';
-import '../../../core/models/member_model.dart';
 import '../../../shared/widgets/app_loading.dart';
 import '../../../shared/widgets/app_empty_state.dart';
 import 'member_detail_screen.dart';
@@ -26,7 +25,7 @@ class MemberListScreen extends ConsumerWidget {
       body: members.when(
         data: (data) {
           if (data.isEmpty) {
-            return const AppEmptyState(title: 'No Members Yet', subtitle: 'Add members to get started', icon: Icons.people_outline);
+            return const AppEmptyState(title: 'No Members Yet', subtitle: 'Add members to get started');
           }
           return Column(
             children: [
@@ -92,8 +91,6 @@ class MemberListScreen extends ConsumerWidget {
         label = 'Secretary';
         break;
       case MemberRole.member:
-        return const SizedBox();
-      default:
         return const SizedBox();
     }
     return Container(

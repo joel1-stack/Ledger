@@ -8,6 +8,7 @@ class QuickActionCard extends StatelessWidget {
   final Color color;
 
   const QuickActionCard({
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,

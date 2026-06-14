@@ -4,14 +4,10 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/approvals_provider.dart';
-import '../../../core/providers/other_providers.dart';
-import '../../../core/models/approval_model.dart';
-import '../../../shared/widgets/app_loading.dart';
 import '../../events/screens/event_list_screen.dart';
 import '../../approvals/screens/approval_list_screen.dart';
 import '../../documents/screens/document_list_screen.dart';
 import '../../reports/screens/report_list_screen.dart';
-import '../../reports/screens/generate_report_screen.dart';
 import '../../groups/screens/group_settings_screen.dart';
 
 class MoreMenuScreen extends ConsumerWidget {
@@ -21,7 +17,7 @@ class MoreMenuScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pendingApprovals = ref.watch(pendingApprovalsProvider(groupId));
-    final pendingCount = pendingApprovals.asData?.value?.length ?? 0;
+    final pendingCount = pendingApprovals.asData?.value.length ?? 0;
 
     return Scaffold(
       backgroundColor: AppColors.background,
