@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "302494815918",
+    "project_id": "ledger-45f58",
+    "storage_bucket": "ledger-45f58.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:302494815918:android:5de4bc426016a3180ebf3f",
+        "android_client_info": {
+          "package_name": "com.ledgerapp.ke"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByX3V6GLSQlJ5yHMZ9QNEC83oD8Hda9eo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
