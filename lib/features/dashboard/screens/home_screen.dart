@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -26,14 +25,12 @@ import '../../../shared/widgets/summary_card.dart';
 import '../../../shared/widgets/quick_action_card.dart';
 import '../../../shared/widgets/app_loading.dart';
 import '../../members/screens/member_list_screen.dart';
-import '../../contributions/screens/contribution_list_screen.dart';
 import '../../contributions/screens/record_payment_screen.dart';
 import '../../timeline/screens/timeline_screen.dart';
 import '../../events/screens/create_event_screen.dart';
+import '../../events/screens/event_list_screen.dart';
 import '../../approvals/screens/approval_list_screen.dart';
 import '../../reports/screens/generate_report_screen.dart';
-import '../../dashboard/screens/more_menu_screen.dart';
-import '../../events/screens/event_list_screen.dart';
 import '../../documents/screens/document_list_screen.dart';
 import '../../groups/screens/group_settings_screen.dart';
 
@@ -50,36 +47,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final groupId = ref.watch(currentGroupIdProvider);
+
     if (groupId == null) {
-      return Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.network(
-                  AppIllustrations.dashboard,
-                  width: 200, height: 200,
-                ),
-                const SizedBox(height: 32),
-                const Text('No Group Selected', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Text('Create or join a group to get started',
-                    style: TextStyle(color: AppColors.textSecondary)),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => context.go(RouteNames.groupList),
-                  icon: const Icon(Icons.arrow_back),
-                  label: const Text('Go to Groups'),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      return _buildNoGroupScaffold();
     }
 
     final group = ref.watch(currentGroupProvider(groupId));
@@ -88,52 +58,145 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final eventsAsync = ref.watch(eventsProvider(groupId));
     final timelineAsync = ref.watch(timelineProvider(groupId));
     final approvalsAsync = ref.watch(pendingApprovalsProvider(groupId));
+
     return group.when(
       data: (g) {
-        if (g == null) return const Center(child: Text('Group not found'));
+        if (g == null) return _buildNoGroupScaffold();
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: _currentIndex == 0
-              ? AppBar(
-                  title: Text(g.name),
-                  actions: [
-                    IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}),
-                    Builder(
-                      builder: (ctx) => IconButton(
-                        icon: const Icon(Icons.menu_rounded),
-                        onPressed: () => Scaffold.of(ctx).openEndDrawer(),
-                      ),
-                    ),
-                  ],
-                )
-              : null,
-          endDrawer: _buildDrawer(context, g, ref),
+          appBar: _buildAppBar(g),
+          drawer: _buildDrawer(context, g, ref),
           body: _buildBody(g, membersAsync, contributionsAsync, eventsAsync, timelineAsync, approvalsAsync),
-          bottomNavigationBar: _buildBottomNav(membersAsync),
+          bottomNavigationBar: _buildBottomNav(),
         );
       },
-      loading: () => const Scaffold(body: AppLoading(message: 'Loading group...')),
-      error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
+      loading: () => Scaffold(
+        backgroundColor: AppColors.background,
+        body: const AppLoading(message: 'Loading group...'),
+        bottomNavigationBar: _buildBottomNav(),
+      ),
+      error: (e, _) => Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: Text('Error: $e')),
+        bottomNavigationBar: _buildBottomNav(),
+      ),
     );
   }
 
-  Widget _buildBottomNav(AsyncValue<List<MemberModel>> membersAsync) {
+  Scaffold _buildNoGroupScaffold() {
+    final user = ref.watch(currentUserProvider);
+    final displayName = user?.displayName ?? '';
+    final greeting = displayName.isNotEmpty ? ', $displayName' : '';
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Spacer(),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.network(
+                  AppIllustrations.people,
+                  width: 220, height: 220, fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text('Welcome$greeting',
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text('Select or create a group to get started',
+                  style: TextStyle(color: AppColors.textSecondary)),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity, height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () => context.go(RouteNames.groupList),
+                  icon: const Icon(Icons.group),
+                  label: const Text('My Groups'),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity, height: 52,
+                child: OutlinedButton.icon(
+                  onPressed: () => context.go(RouteNames.groupModel),
+                  icon: const Icon(Icons.add_circle_outline),
+                  label: const Text('Create New Group'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity, height: 52,
+                child: TextButton.icon(
+                  onPressed: () => context.go(RouteNames.groupJoin),
+                  icon: const Icon(Icons.search),
+                  label: const Text('Search Existing Groups'),
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () async {
+                  await ref.read(authServiceProvider).signOut();
+                  if (context.mounted) context.go(RouteNames.landing);
+                },
+                child: const Text('Sign Out'),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(GroupModel group) {
+    if (_currentIndex != 0) return AppBar();
+    return AppBar(
+      title: Text(group.name),
+      actions: [
+        IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}),
+        Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomNav() {
     final items = <BottomNavigationBarItem>[
       const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
       const BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Members'),
-      const BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), activeIcon: Icon(Icons.account_balance_wallet), label: 'Contrib'),
       const BottomNavigationBarItem(icon: Icon(Icons.timeline_outlined), activeIcon: Icon(Icons.timeline), label: 'Timeline'),
+      const BottomNavigationBarItem(icon: Icon(Icons.description_outlined), activeIcon: Icon(Icons.description), label: 'Docs'),
       const BottomNavigationBarItem(icon: Icon(Icons.more_horiz), activeIcon: Icon(Icons.more_horiz), label: 'More'),
     ];
-
     final maxIdx = items.length - 1;
-
     return BottomNavigationBar(
       currentIndex: _currentIndex > maxIdx ? maxIdx : _currentIndex,
       type: BottomNavigationBarType.fixed,
       selectedItemColor: AppColors.primary,
       unselectedItemColor: AppColors.textTertiary,
-      onTap: (i) => setState(() => _currentIndex = i),
+      onTap: (i) {
+        if (i == 4) {
+          Scaffold.of(context).openDrawer();
+          return;
+        }
+        final groupId = ref.read(currentGroupIdProvider);
+        if (groupId == null) {
+          if (i == 0) {
+            setState(() => _currentIndex = i);
+          }
+          return;
+        }
+        setState(() => _currentIndex = i);
+      },
       items: items,
     );
   }
@@ -231,11 +294,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 1:
         return MemberListScreen(groupId: group.id);
       case 2:
-        return ContributionListScreen(groupId: group.id);
-      case 3:
         return TimelineScreen(groupId: group.id);
+      case 3:
+        return DocumentListScreen(groupId: group.id);
       case 4:
-        return MoreMenuScreen(groupId: group.id);
+        return const SizedBox();
       default:
         return const SizedBox();
     }
@@ -409,8 +472,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const Text('Recent Activity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 if (recentTimeline.length > 5)
                   TextButton(
-                    onPressed: () => setState(() => _currentIndex = 3),
-                    child: const Text('See All →'),
+                    onPressed: () => setState(() => _currentIndex = 2),
+                    child: const Text('See All \u2192'),
                   ),
               ],
             ),
@@ -551,7 +614,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _showAddMembersDialog(BuildContext context, String groupId) {
-    final codeCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -560,33 +622,80 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.contact_phone),
+              leading: const Icon(Icons.contact_phone, color: AppColors.primary),
               title: const Text('Import from Contacts'),
-              onTap: () => Navigator.pop(ctx),
+              subtitle: const Text('Sync phone contacts'),
+              onTap: () { Navigator.pop(ctx); _showComingSoon(); },
             ),
             ListTile(
-              leading: const Icon(Icons.paste),
-              title: const Text('Paste from WhatsApp'),
-              subtitle: const Text('Copy group members list'),
-              onTap: () => Navigator.pop(ctx),
+              leading: const Icon(Icons.paste, color: AppColors.primary),
+              title: const Text('Paste List'),
+              subtitle: const Text('Copy names/phones from WhatsApp'),
+              onTap: () { Navigator.pop(ctx); _showPasteDialog(context, groupId); },
             ),
             ListTile(
-              leading: const Icon(Icons.upload_file),
+              leading: const Icon(Icons.upload_file, color: AppColors.primary),
               title: const Text('Upload CSV'),
-              onTap: () => Navigator.pop(ctx),
+              subtitle: const Text('Bulk import from file'),
+              onTap: () { Navigator.pop(ctx); _showComingSoon(); },
             ),
-            const Divider(),
-            TextField(
-              controller: codeCtrl,
-              decoration: const InputDecoration(labelText: 'Manual Entry', hintText: 'Name ~ Phone'),
+            ListTile(
+              leading: const Icon(Icons.qr_code_scanner, color: AppColors.primary),
+              title: const Text('Scan QR Code'),
+              subtitle: const Text('Invite members via QR'),
+              onTap: () { Navigator.pop(ctx); _showComingSoon(); },
             ),
           ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx), child: const Text('Add')),
         ],
       ),
+    );
+  }
+
+  void _showPasteDialog(BuildContext context, String groupId) {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Paste Member List'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Paste names and phone numbers (one per line, format: Name ~ Phone)'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              maxLines: 6,
+              decoration: const InputDecoration(
+                hintText: 'Joel ~ 0712345678\nAlice ~ 0723456789\nBob ~ 0734567890',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              final lines = ctrl.text.trim().split('\n').where((l) => l.trim().isNotEmpty).toList();
+              final count = lines.length;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('$count members will be added (coming soon)')),
+              );
+            },
+            child: const Text('Add Members'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showComingSoon() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Coming soon!')),
     );
   }
 }

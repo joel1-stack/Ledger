@@ -26,6 +26,8 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
   final _descCtrl = TextEditingController();
   final _memberNameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController(text: '+254');
+  final _typeNameCtrl = TextEditingController();
+  final _typeAmountCtrl = TextEditingController();
   final List<Map<String, dynamic>> _types = [];
   bool _isLoading = false;
   String? _readSim;
@@ -86,7 +88,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
   void initState() {
     super.initState();
     _readSimFromDevice();
-    if (widget.modelId != null && _modelConfigs.containsKey(widget.modelId)) {
+    if (widget.modelId != null && widget.modelId != 'custom' && _modelConfigs.containsKey(widget.modelId)) {
       final cfg = _modelConfigs[widget.modelId]!;
       _nameCtrl.text = cfg['name'] as String;
       _descCtrl.text = cfg['desc'] as String;
@@ -113,7 +115,24 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     _descCtrl.dispose();
     _memberNameCtrl.dispose();
     _phoneCtrl.dispose();
+    _typeNameCtrl.dispose();
+    _typeAmountCtrl.dispose();
     super.dispose();
+  }
+
+  void _addType() {
+    final name = _typeNameCtrl.text.trim();
+    final amount = double.tryParse(_typeAmountCtrl.text.trim()) ?? 0;
+    if (name.isEmpty) return;
+    setState(() {
+      _types.add({'name': name, 'amount': amount, 'frequency': 'monthly', 'mandatory': false});
+      _typeNameCtrl.clear();
+      _typeAmountCtrl.clear();
+    });
+  }
+
+  void _removeType(int index) {
+    setState(() => _types.removeAt(index));
   }
 
   Future<void> _create() async {
@@ -175,52 +194,89 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     final codeCtrl = TextEditingController();
     final auth = ref.read(authServiceProvider);
     String? vid;
+    String? errorMsg;
+
+    void proceedWithoutVerify() {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Skipped verification. You can verify later in settings.'), backgroundColor: AppColors.warning),
+      );
+      context.go(RouteNames.inviteMembers, extra: groupId);
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Verify Chairman'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('SIM phone number does not match. Verify with OTP to become Chairman.'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: codeCtrl,
-              textAlign: TextAlign.center,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 8),
-              decoration: const InputDecoration(labelText: 'OTP Code'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Verify Chairman'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('SIM phone number does not match.'),
+              const SizedBox(height: 8),
+              Text('Enter the OTP sent to $phone',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              if (errorMsg != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.errorLight,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(errorMsg!,
+                      style: const TextStyle(color: AppColors.error, fontSize: 12)),
+                ),
+              ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: codeCtrl,
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 8),
+                decoration: const InputDecoration(labelText: 'OTP Code'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: proceedWithoutVerify,
+              child: const Text('Skip Verification'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (codeCtrl.text.length < 6 || vid == null) return;
+                try {
+                  await auth.linkPhone(vid!, codeCtrl.text);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (mounted) context.go(RouteNames.inviteMembers, extra: groupId);
+                } catch (e) {
+                  setDialogState(() => errorMsg = 'Invalid OTP. Try again or skip.');
+                }
+              },
+              child: const Text('Verify'),
             ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              if (codeCtrl.text.length < 6 || vid == null) return;
-              try {
-                await auth.linkPhone(vid!, codeCtrl.text);
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (mounted) context.go(RouteNames.inviteMembers, extra: groupId);
-              } catch (e) {
-                if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Invalid OTP')));
-              }
-            },
-            child: const Text('Verify'),
-          ),
-        ],
       ),
     );
-    auth.sendOtpAndGetVerificationId(phone).then((v) => vid = v);
+    auth.sendOtpAndGetVerificationId(phone).then((v) { vid = v; return v; }).catchError((e) {
+      if (mounted) {
+        errorMsg = 'SMS could not be sent. Please enable SMS region in Firebase console or use Skip.';
+        setState(() {});
+      }
+      return '';
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final isCustom = widget.modelId == 'custom';
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text('Create Group'), backgroundColor: Colors.transparent),
+      appBar: AppBar(title: Text(isCustom ? 'Custom Group' : 'Create Group'), backgroundColor: Colors.transparent),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -256,19 +312,57 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                 ),
               ),
             const SizedBox(height: 24),
-            if (_types.isNotEmpty) ...[
-              const Text('Contribution Types', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              ..._types.map((t) => Card(
+
+            // Contribution Types
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Contribution Types', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                if (isCustom)
+                  TextButton.icon(
+                    onPressed: _showAddTypeDialog,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Add Type'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (_types.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.receipt_long, color: AppColors.textTertiary, size: 32),
+                    const SizedBox(height: 8),
+                    Text('No contribution types yet',
+                        style: TextStyle(color: AppColors.textTertiary)),
+                    if (isCustom)
+                      Text('Add types above, or skip and add later',
+                          style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+                  ],
+                ),
+              )
+            else
+              ..._types.asMap().entries.map((entry) => Card(
                 child: ListTile(
                   leading: const Icon(Icons.receipt_long, color: AppColors.primary),
-                  title: Text(t['name']),
-                  subtitle: Text('KES ${(t['amount'] as double).toStringAsFixed(0)} | ${t['frequency']}'),
+                  title: Text(entry.value['name']),
+                  subtitle: Text('KES ${(entry.value['amount'] as double).toStringAsFixed(0)} | ${entry.value['frequency']}'),
+                  trailing: isCustom
+                      ? IconButton(
+                          icon: const Icon(Icons.close, size: 18, color: AppColors.error),
+                          onPressed: () => _removeType(entry.key),
+                        )
+                      : null,
                   dense: true,
                 ),
               )),
-              const SizedBox(height: 16),
-            ],
+            const SizedBox(height: 16),
             AppButton(
               label: 'Create Group',
               onPressed: (_nameCtrl.text.trim().isNotEmpty && _memberNameCtrl.text.trim().isNotEmpty && _phoneCtrl.text.trim().length >= 10) ? _create : null,
@@ -277,6 +371,42 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
             const SizedBox(height: 32),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showAddTypeDialog() {
+    _typeNameCtrl.clear();
+    _typeAmountCtrl.clear();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add Contribution Type'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _typeNameCtrl,
+              decoration: const InputDecoration(labelText: 'Type Name', hintText: 'e.g. Monthly Fee'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _typeAmountCtrl,
+              decoration: const InputDecoration(labelText: 'Amount (KES)', hintText: 'e.g. 500'),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _addType();
+            },
+            child: const Text('Add'),
+          ),
+        ],
       ),
     );
   }

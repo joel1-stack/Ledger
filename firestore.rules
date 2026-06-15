@@ -16,7 +16,14 @@ service cloud.firestore {
     // GROUPS - Main group document
     // ============================================
     match /groups/{groupId} {
-      allow read: if isGroupMember(groupId);
+      // Anyone authenticated can list/search groups (for join requests)
+      allow list: if request.auth != null;
+      // Full read access for members
+      allow read: if request.auth != null && (
+        request.query.limit != null ||  // allow collection queries
+        isGroupMember(groupId)
+      );
+      allow get: if isGroupMember(groupId) || request.auth != null;  // allow searching
       allow create: if request.auth != null;
       allow update: if isGroupAdmin(groupId);
       allow delete: if false;
@@ -26,8 +33,9 @@ service cloud.firestore {
     // GROUP MEMBERS
     // ============================================
     match /groups/{groupId}/members/{memberId} {
-      allow read: if isGroupMember(groupId);
-      allow create: if hasRole(groupId, ['chairman', 'treasurer']);
+      allow read: if isGroupMember(groupId) || request.auth != null;
+      allow create: if hasRole(groupId, ['chairman', 'treasurer']) ||
+        (request.auth != null && request.auth.uid == memberId); // self-join requests
       allow update: if isGroupAdmin(groupId) ||
         (request.auth != null && request.auth.uid == resource.data.userId);
       allow delete: if isGroupAdmin(groupId);

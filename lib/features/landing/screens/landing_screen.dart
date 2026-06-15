@@ -52,6 +52,13 @@ class LandingScreen extends ConsumerWidget {
       title: 'Church Group',
       subtitle: 'Tithes, offerings, building funds & ministries',
     ),
+    _ModelCard(
+      id: 'custom',
+      image: AppIllustrations.people,
+      icon: Icons.dashboard_customize,
+      title: 'Custom Group',
+      subtitle: 'Start from scratch with your own rules',
+    ),
   ];
 
   @override
@@ -77,6 +84,8 @@ class LandingScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   ..._models.map((m) => _buildCard(context, m)),
                   const SizedBox(height: 16),
+                  _buildSearchSection(context, ref),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -98,6 +107,43 @@ class LandingScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildSearchSection(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.search, color: AppColors.primary),
+              const SizedBox(width: 8),
+              const Text('Looking for a specific group?',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text('Search for existing groups by name and request to join',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity, height: 48,
+            child: ElevatedButton.icon(
+              onPressed: () => context.go(RouteNames.groupJoin),
+              icon: const Icon(Icons.search, size: 20),
+              label: const Text('Search Groups'),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCard(BuildContext context, _ModelCard model) {
     return Container(
       height: 120,
@@ -112,7 +158,13 @@ class LandingScreen extends ConsumerWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => context.go(RouteNames.groupCreate, extra: model.id),
+          onTap: () {
+            if (model.id == 'custom') {
+              context.go(RouteNames.groupCreate, extra: 'custom');
+            } else {
+              context.go(RouteNames.groupCreate, extra: model.id);
+            }
+          },
           child: Stack(
             fit: StackFit.expand,
             children: [
