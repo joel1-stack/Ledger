@@ -11,8 +11,7 @@ import '../../../router/app_router.dart';
 import '../../../shared/widgets/app_text_field.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
-  final String phone;
-  const ProfileSetupScreen({required this.phone, super.key});
+  const ProfileSetupScreen({super.key});
 
   @override
   ConsumerState<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
@@ -33,7 +32,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     if (name.length < 2) return;
     setState(() => _isLoading = true);
     try {
-      await ref.read(authServiceProvider).registerWithPhone(widget.phone, name);
+      await ref.read(authServiceProvider).createUserProfile(name);
       if (mounted) context.go(RouteNames.groupList);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));

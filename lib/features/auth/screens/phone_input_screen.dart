@@ -35,14 +35,9 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     if (!_isValid) return;
     setState(() => _isLoading = true);
     try {
-      final authService = ref.read(authServiceProvider);
-      final existing = await authService.loginWithPhone(_phoneController.text);
+      final vid = await ref.read(phoneAuthProvider).sendOTP(_phoneController.text);
       if (mounted) {
-        if (existing != null) {
-          context.go(RouteNames.groupList);
-        } else {
-          context.go(RouteNames.profileSetup, extra: _phoneController.text);
-        }
+        context.push(RouteNames.otpVerify, extra: {'vid': vid, 'phone': _phoneController.text});
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -79,9 +74,9 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              Text('Enter Your Phone', style: AppTypography.headlineMedium, textAlign: TextAlign.center),
+              Text('Enter Your Phone Number', style: AppTypography.headlineMedium, textAlign: TextAlign.center),
               const SizedBox(height: 8),
-              Text('Use your phone number to login or create an account',
+              Text("We'll send you a verification code",
                   style: AppTypography.bodyLarge.copyWith(color: AppColors.textSecondary)),
               const SizedBox(height: 32),
               Container(
@@ -136,7 +131,7 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                     ),
                     child: _isLoading
                         ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                        : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        : const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ),

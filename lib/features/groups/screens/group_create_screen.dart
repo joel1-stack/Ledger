@@ -92,22 +92,22 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     if (_nameController.text.trim().isEmpty) return;
     setState(() => _isLoading = true);
     try {
-      final user = ref.read(currentUserProvider);
-      if (user == null) return;
+      final firebaseUser = ref.read(currentUserProvider);
+      if (firebaseUser == null) return;
       final service = ref.read(firestoreServiceProvider);
       final group = await service.createGroup({
         'name': _nameController.text.trim(),
         'description': _descController.text.trim(),
         'inviteCode': IdGenerator.generateInviteCode(),
-        'createdBy': user.uid,
+        'createdBy': firebaseUser.uid,
         'createdAt': FieldValue.serverTimestamp(),
         'enabledFeatures': ['contributions', 'events', 'approvals', 'reports', 'documents', 'timeline'],
         'stats': {'totalMembers': 1, 'totalCollected': 0.0, 'totalOutstanding': 0.0, 'activeEvents': 0},
       });
       await service.addMember(group.id, {
-        'userId': user.uid,
-        'phone': user.phone,
-        'name': user.name,
+        'userId': firebaseUser.uid,
+        'phone': firebaseUser.phoneNumber ?? '',
+        'name': firebaseUser.displayName ?? _nameController.text.trim(),
         'role': 'chairman',
         'groupId': group.id,
         'memberNumber': 1,

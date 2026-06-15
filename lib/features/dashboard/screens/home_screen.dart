@@ -543,7 +543,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 'title': titleCtrl.text,
                 'message': msgCtrl.text,
                 'sentBy': ref.read(currentUserProvider)?.uid ?? '',
-                'sentByName': ref.read(currentUserProvider)?.name ?? '',
+                'sentByName': ref.read(currentUserProvider)?.displayName ?? '',
                 'sentAt': FieldValue.serverTimestamp(),
                 'readBy': [],
               });

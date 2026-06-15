@@ -2,33 +2,128 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users: anyone can read to check phone, create to register,
-    // update only own doc (by phone match), no deletes
+    // ============================================
+    // USERS - Only the user can read/write their own profile
+    // ============================================
     match /users/{userId} {
-      allow read: if true;
-      allow create: if request.resource.data.phone != null;
-      allow update: if resource.data.phone == request.resource.data.phone;
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
       allow delete: if false;
     }
 
-    // Groups: anyone can read/create, update by matching creator phone,
-    // no deletes
+    // ============================================
+    // GROUPS - Main group document
+    // ============================================
     match /groups/{groupId} {
-      allow read: if true;
-      allow create: if request.resource.data.createdBy != null
-                      && request.resource.data.name != null
-                      && request.resource.data.inviteCode != null;
-      allow update: if resource.data.createdBy == request.resource.data.createdBy
-                      || request.resource.data.createdBy == resource.data.createdBy;
+      allow read: if isGroupMember(groupId);
+      allow create: if request.auth != null;
+      allow update: if isGroupAdmin(groupId);
       allow delete: if false;
+    }
 
-      // Subcollections (members, contributions, timeline, events, etc.)
-      match /{document=**} {
-        allow read: if true;
-        allow create: if request.resource.data != null;
-        allow update: if request.resource.data != null;
-        allow delete: if false;
-      }
+    // ============================================
+    // GROUP MEMBERS
+    // ============================================
+    match /groups/{groupId}/members/{memberId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if hasRole(groupId, ['chairman', 'treasurer']);
+      allow update: if isGroupAdmin(groupId) ||
+        (request.auth != null && request.auth.uid == resource.data.userId);
+      allow delete: if isGroupAdmin(groupId);
+    }
+
+    // ============================================
+    // CONTRIBUTION TYPES
+    // ============================================
+    match /groups/{groupId}/contributionTypes/{typeId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if isGroupAdmin(groupId);
+      allow update: if isGroupAdmin(groupId);
+      allow delete: if isGroupAdmin(groupId);
+    }
+
+    // ============================================
+    // CONTRIBUTIONS
+    // ============================================
+    match /groups/{groupId}/contributions/{contributionId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if hasRole(groupId, ['chairman', 'treasurer']);
+      allow update: if hasRole(groupId, ['chairman']) ||
+        (request.auth != null && request.auth.uid == resource.data.recordedBy);
+      allow delete: if false;
+    }
+
+    // ============================================
+    // EVENTS
+    // ============================================
+    match /groups/{groupId}/events/{eventId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if hasRole(groupId, ['chairman', 'secretary']);
+      allow update: if hasRole(groupId, ['chairman', 'secretary']);
+      allow delete: if isGroupAdmin(groupId);
+    }
+
+    // ============================================
+    // APPROVALS
+    // ============================================
+    match /groups/{groupId}/approvals/{approvalId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if hasRole(groupId, ['chairman', 'treasurer']);
+      allow update: if isGroupMember(groupId) && (
+        (request.resource.data.approvedBy.hasAll(resource.data.approvedBy) &&
+         request.resource.data.rejectedBy.hasAll(resource.data.rejectedBy)) ||
+        isGroupAdmin(groupId)
+      );
+      allow delete: if isGroupAdmin(groupId);
+    }
+
+    // ============================================
+    // DOCUMENTS
+    // ============================================
+    match /groups/{groupId}/documents/{docId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if hasRole(groupId, ['chairman', 'treasurer', 'secretary']);
+      allow update: if hasRole(groupId, ['chairman', 'treasurer', 'secretary']);
+      allow delete: if isGroupAdmin(groupId);
+    }
+
+    // ============================================
+    // TIMELINE - IMMUTABLE (only Cloud Functions write)
+    // ============================================
+    match /groups/{groupId}/timeline/{eventId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ============================================
+    // ANNOUNCEMENTS
+    // ============================================
+    match /groups/{groupId}/announcements/{announcementId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if hasRole(groupId, ['chairman', 'treasurer', 'secretary']);
+      allow update: if false;
+      allow delete: if isGroupAdmin(groupId);
+    }
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    function isGroupMember(groupId) {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid));
+    }
+
+    function isGroupAdmin(groupId) {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid)).data.role == 'chairman';
+    }
+
+    function hasRole(groupId, allowedRoles) {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid)).data.role in allowedRoles;
     }
   }
 }

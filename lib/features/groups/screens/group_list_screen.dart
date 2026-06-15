@@ -16,7 +16,10 @@ class GroupListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentUser = ref.watch(currentUserProvider);
+    final firebaseUser = ref.watch(currentUserProvider);
+    final profileAsync = firebaseUser != null
+        ? ref.watch(userProfileProvider(firebaseUser.uid))
+        : null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -32,9 +35,15 @@ class GroupListScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: currentUser == null
+      body: profileAsync == null || profileAsync is AsyncLoading
           ? _buildEmptyState()
-          : _buildGroupsList(context, ref, currentUser.groupIds),
+          : profileAsync.when(
+              data: (profile) => profile == null
+                  ? _buildEmptyState()
+                  : _buildGroupsList(context, ref, profile.groupIds),
+              loading: () => const AppLoading(),
+              error: (_, _) => _buildEmptyState(),
+            ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),

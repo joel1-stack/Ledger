@@ -1,0 +1,314 @@
+LEDGER V1 - FULL APP INVENTORY
+Generated: June 14, 2026
+Package: com.ledgerapp.ke | Firebase Project: ledger-45f58
+
+================================================================
+NAVIGATION FLOW
+================================================================
+Splash (2s) → Welcome → How It Works (3 pages) → Phone Input
+→ OTP Verify → Profile Setup → Group List → Home Dashboard
+
+================================================================
+ROUTES (app_router.dart)
+================================================================
+/              Splash
+/welcome       Welcome Screen
+/how-it-works  Onboarding (3 pages)
+/phone-input   Phone Number Entry
+/otp-verify    OTP Verification
+/profile-setup Name + Photo
+/groups        Group List
+/groups/create Create Group (3 steps)
+/groups/invite Invite Members
+/home          Home Dashboard (with bottom nav + end drawer)
+
+================================================================
+AUTH FLOW (Firebase Phone Auth)
+================================================================
+1. User enters phone (+254 XXX XXX XXX)
+2. Firebase sends OTP via SMS
+3. User enters 6-digit code
+4. On verify: checks Firestore for existing user profile
+   - Profile exists → go to /home
+   - No profile → go to /profile-setup
+5. Profile setup writes to Firestore users/{uid}
+6. Firestore rules require request.auth != null
+
+Providers:
+  authServiceProvider    → AuthService instance
+  authStateProvider      → StreamProvider<User?> (Firebase Auth state)
+  currentUserProvider    → Provider<User?> (current Firebase User)
+  userProfileProvider    → FutureProvider.family<UserModel?, uid>
+  phoneAuthProvider     → PhoneAuthHandler (sendOTP, verifyOTP)
+
+================================================================
+SCREENS - AUTH
+================================================================
+phone_input_screen.dart   - KE +254 prefix, validates 12-digit, sends OTP
+otp_verify_screen.dart    - 6-digit entry, auto-submit, 60s resend timer
+profile_setup_screen.dart - Full name input, optional photo, creates Firestore profile
+
+================================================================
+SCREENS - ONBOARDING
+================================================================
+splash_screen.dart        - Emerald gradient, app logo, 2s delay
+welcome_screen.dart       - Community illustration, "Get Started" button
+how_it_works_screen.dart  - 3-page PageView: Create Group, Record Contributions, Never Lose Memory
+
+================================================================
+SCREENS - GROUPS
+================================================================
+group_list_screen.dart    - Lists user's groups, Create/Join buttons, Join by invite code
+group_create_screen.dart  - 3-step wizard: Name+Desc → Contribution Types → Roles & Invite
+invite_members_screen.dart - Success screen with shareable invite code
+group_settings_screen.dart - Settings menu: Edit Name, Contribution Types, Roles, Features, Share Code, Delete
+
+================================================================
+SCREENS - DASHBOARD
+================================================================
+home_screen.dart          - Main shell with 5-tab bottom nav + end drawer
+  Bottom Nav: Home | Members | Contributions | Timeline | More
+  Dashboard tab: Summary cards, Pending approvals banner, Quick actions,
+                 Active events, Recent activity timeline
+  End Drawer: Events, Approvals (badge), Documents, Reports,
+              Announcements, Group Settings, Profile, Help,
+              Switch Group, Log Out
+more_menu_screen.dart     - Same menu as drawer in list format
+
+================================================================
+SCREENS - MEMBERS
+================================================================
+member_list_screen.dart   - Searchable member list with role badges
+member_detail_screen.dart - Avatar, info, contribution history (last 10)
+
+================================================================
+SCREENS - CONTRIBUTIONS
+================================================================
+contribution_list_screen.dart - Stats (Collected/Pending/Total), type progress bars, records list
+record_payment_screen.dart   - Form: type, member, amount, method (Cash/M-Pesa), notes
+
+================================================================
+SCREENS - EVENTS
+================================================================
+event_list_screen.dart   - Events with type icon, status, progress, deadline
+create_event_screen.dart - Form: type (6 chips), title, desc, amount, deadline picker
+
+================================================================
+SCREENS - APPROVALS
+================================================================
+approval_list_screen.dart - Approval requests with status, progress, vote buttons
+
+================================================================
+SCREENS - TIMELINE
+================================================================
+timeline_screen.dart     - Activity feed grouped by date, icon by event type
+
+================================================================
+SCREENS - DOCUMENTS
+================================================================
+document_list_screen.dart - Document list by type, upload dialog (title only)
+
+================================================================
+SCREENS - REPORTS
+================================================================
+report_list_screen.dart     - 4 report types: Monthly Summary, Member Statement, Event Report, Full Audit
+generate_report_screen.dart - PDF generator with month/year picker, share via share_plus
+
+================================================================
+FIRESTORE COLLECTIONS
+================================================================
+users/{uid}           - uid, phone, name, photoUrl, groupIds[], createdAt
+groups/{groupId}      - name, description, inviteCode, createdBy, createdAt,
+                        enabledFeatures[], stats{totalMembers, totalCollected,
+                        totalOutstanding, activeEvents}
+groups/{id}/members/{id}      - userId, phone, name, role, groupId,
+                                 memberNumber, status, joinedAt
+groups/{id}/contributions/{id} - memberId, memberName, typeId, typeName,
+                                  amount, status, method, receiptUrl, notes,
+                                  recordedBy, paidAt, createdAt
+groups/{id}/contributionTypes/{id} - name, amount, isOpenAmount, frequency,
+                                      mandatory, createdAt
+groups/{id}/events/{id}    - type, title, description, targetAmount,
+                              collectedAmount, requiredPerMember, deadline,
+                              status, createdBy, createdAt
+groups/{id}/approvals/{id} - type, targetId, amount, description,
+                              requestedBy, approvedBy[], rejectedBy[],
+                              requiredCount, status, createdAt, resolvedAt
+groups/{id}/documents/{id} - title, fileUrl, type, uploadedBy, createdAt
+groups/{id}/timeline/{id}  - type, actorMemberId, actorName, description,
+                               targetType, targetId, snapshot, createdAt
+groups/{id}/announcements/{id} - title, message, sentBy, sentByName,
+                                   sentAt, readBy[]
+
+================================================================
+MODELS
+================================================================
+UserModel          - uid, phone, name, photoUrl?, groupIds[], createdAt
+GroupModel         - id, name, description?, inviteCode, createdBy, createdAt,
+                     enabledFeatures[FeatureFlag], stats( GroupStats)
+GroupStats         - totalMembers, totalCollected, totalOutstanding, activeEvents
+MemberModel        - id, userId?, phone, name, role(MemberRole), groupId,
+                     memberNumber, status, joinedAt
+ContributionRecord - id, groupId, memberId, memberName, typeId, typeName,
+                     amount, status(PaymentStatus), method(PaymentMethod),
+                     receiptUrl?, notes?, recordedBy, paidAt, createdAt
+ContributionType   - id, groupId, name, amount, isOpenAmount, frequency,
+                     mandatory, createdAt
+EventModel         - id, groupId, type(EventType), title, description?,
+                     targetAmount, collectedAmount, requiredPerMember,
+                     deadline, status, createdBy, createdAt
+ApprovalModel      - id, groupId, type, targetId, amount, description,
+                     requestedBy, approvedBy[], rejectedBy[], requiredCount,
+                     status(ApprovalStatus), createdAt, resolvedAt?
+DocumentModel      - id, groupId, title, fileUrl, type, uploadedBy, createdAt
+TimelineEventModel - id, groupId, type, actorMemberId, actorName, description,
+                     targetType?, targetId?, snapshot?, createdAt
+AnnouncementModel  - id, groupId, title, message, sentBy, sentByName,
+                     sentAt, readBy[]
+
+================================================================
+ENUMS
+================================================================
+MemberRole     - chairman, treasurer, secretary, member
+PaymentStatus  - paid, pending, overdue, cancelled
+PaymentMethod  - cash, mpesa, bank_transfer
+EventType      - death, wedding, emergency, project, meeting, other
+FeatureFlag    - contributions, events, approvals, reports, documents, timeline
+ApprovalStatus - pending, approved, rejected
+
+================================================================
+SERVICES
+================================================================
+AuthService (firebase_auth + cloud_firestore)
+  - currentUser, authStateChanges
+  - sendOTP(phone, codeSent callback)
+  - verifyOTP(verificationId, smsCode)
+  - createUserProfile(name, photoUrl?)
+  - getUserProfile(uid)
+  - signOut()
+
+FirestoreService (cloud_firestore)
+  - createGroup(data), getGroup(id), getGroupByInviteCode(code)
+  - addMember(groupId, data), getMembers(groupId)
+  - addContributionType(groupId, data), getContributionTypes(groupId)
+  - recordContribution(groupId, data)
+  - getContributions(groupId), getContributionRecords(groupId)
+  - createEvent(groupId, data), getEvents(groupId)
+  - createApproval(groupId, data), getApprovals(groupId)
+  - voteOnApproval(groupId, approvalId, userId, vote)
+  - addDocument(groupId, data), getDocuments(groupId)
+  - getTimelineEvents(groupId)
+  - sendAnnouncement(groupId, data)
+
+================================================================
+PROVIDERS (Riverpod)
+================================================================
+authServiceProvider           → AuthService
+authStateProvider             → StreamProvider<User?> (Firebase Auth)
+currentUserProvider           → Provider<User?> (Firebase Auth currentUser)
+userProfileProvider(uid)      → FutureProvider<UserModel?>
+phoneAuthProvider            → PhoneAuthHandler
+firestoreServiceProvider     → FirestoreService
+currentGroupIdProvider       → StateProvider<String?>
+currentGroupProvider(id)     → FutureProvider<GroupModel?>
+userGroupsProvider(ids)      → FutureProvider<List<GroupModel>>
+membersProvider(groupId)     → FutureProvider<List<MemberModel>>
+contributionsProvider(gid)   → FutureProvider<List<ContributionRecordModel>>
+contributionTypesProvider(gid)→ FutureProvider<List<ContributionTypeModel>>
+eventsProvider(groupId)      → FutureProvider<List<EventModel>>
+pendingApprovalsProvider(gid)→ FutureProvider<List<ApprovalModel>>
+timelineProvider(groupId)    → FutureProvider<List<TimelineEventModel>>
+
+================================================================
+SHARED WIDGETS
+================================================================
+app_button.dart         - Gradient elevated button with loading state
+app_text_field.dart     - Styled text input with label, hint, maxLines
+app_loading.dart        - Centered spinner with optional message
+summary_card.dart       - Stat card with icon, label, value, colors
+quick_action_card.dart  - Tappable action card with icon + label
+gradient_background.dart- Emerald gradient scaffold background
+
+================================================================
+UTILITIES
+================================================================
+currency_format.dart    - KES formatting (format, formatShort)
+date_helpers.dart       - timeAgo(), formatDate(), formatDateTime()
+id_generator.dart       - generateInviteCode() - 8-char alphanumeric
+
+================================================================
+CONSTANTS
+================================================================
+app_colors.dart        - Emerald/Amber palette, gradients, semantic colors
+app_illustrations.dart - unDraw SVG URLs for all screens
+app_strings.dart       - All user-facing strings
+app_typography.dart    - Text styles (headline, body, caption etc.)
+app_theme.dart         - ThemeData with Emerald primary
+
+================================================================
+DEPENDENCIES (pubspec.yaml)
+================================================================
+firebase_core          - Firebase initialization
+firebase_auth          - Phone Auth (OTP)
+cloud_firestore        - Firestore database
+firebase_storage       - File storage
+firebase_messaging      - Push notifications
+flutter_riverpod       - State management
+go_router              - Navigation
+image_picker           - Camera/gallery
+file_picker            - File selection
+share_plus             - Share PDFs/codes
+pdf + printing         - PDF report generation
+intl                   - Date/number formatting
+path_provider          - File paths
+csv                    - CSV export
+permission_handler     - Runtime permissions
+flutter_local_notifications - Local notifications
+cached_network_image   - Image caching
+shimmer                - Loading placeholders
+uuid                   - Unique IDs
+flutter_svg            - SVG rendering (unDraw illustrations)
+flutter_animate        - Animations
+
+================================================================
+ANDROID CONFIG
+================================================================
+Package:     com.ledgerapp.ke
+App Name:    Ledger
+Min SDK:     23 (Android 6.0)
+Target SDK:  35
+Icon:        assets/icons/true.png (via flutter_launcher_icons)
+             Adaptive icon with #10B981 background
+Desugaring:  Enabled (coreLibraryDesugaring)
+Proguard:    Standard Flutter rules
+
+================================================================
+FIREBASE CONFIG
+================================================================
+Project:     ledger-45f58
+Plan:        Spark (free)
+Auth:        Phone Auth enabled
+Firestore:   Rules require request.auth != null
+Storage:     Configured
+Messaging:   Configured
+
+================================================================
+COLOR PALETTE
+================================================================
+Primary:      #10B981 (Emerald)
+Secondary:    #F59E0B (Amber)
+Background:   #F9FAFB
+Scaffold:     #F3F4F6
+Success:      #10B981  Light: #D1FAE5
+Warning:      #F59E0B  Light: #FEF3C7
+Error:        #EF4444  Light: #FEE2E2
+Info:         #3B82F6  Light: #DBEAFE
+Text Primary: #111827
+Text Secondary: #6B7280
+Text Tertiary: #9CA3AF
+Divider:      #E5E7EB
+
+================================================================
+GIT
+================================================================
+Repo: https://github.com/joel1-stack/Ledger.git
