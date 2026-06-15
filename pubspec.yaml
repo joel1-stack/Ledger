@@ -46,9 +46,10 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icons/true.png"
-  adaptive_icon_background: "#10B981"
-  adaptive_icon_foreground: "assets/icons/true.png"
+  image_path: "assets/icons/ledger_combined.png"
+  adaptive_icon_background: "#0D8A53"
+  adaptive_icon_foreground: "assets/icons/ledger_combined.png"
+  min_sdk_android: 21
 
 flutter:
   uses-material-design: true
