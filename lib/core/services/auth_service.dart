@@ -40,7 +40,7 @@ class AuthService {
 
   Future<UserCredential> bypassSignIn(String phone) async {
     final clean = phone.replaceAll(RegExp(r'\D'), '');
-    final email = '${clean}@bypass.ledger';
+    final email = '$clean@bypass.ledger';
     final password = 'bypass123';
     try {
       return await _auth.signInWithEmailAndPassword(email: email, password: password);

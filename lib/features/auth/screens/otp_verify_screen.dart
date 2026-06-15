@@ -138,9 +138,15 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
               TextButton(
                 onPressed: _resendSeconds == 0
                     ? () {
-                        ref.read(phoneAuthProvider).sendOTP(widget.phone);
-                        setState(() => _resendSeconds = 60);
-                        _startResendTimer();
+                        ref.read(phoneAuthProvider).startWaterfall(
+                          phone: widget.phone,
+                          onAutoVerified: () {},
+                          onCodeSent: () {
+                            setState(() => _resendSeconds = 60);
+                            _startResendTimer();
+                          },
+                          onManualOtpNeeded: (vid) {},
+                        );
                       }
                     : null,
                 child: Text(
