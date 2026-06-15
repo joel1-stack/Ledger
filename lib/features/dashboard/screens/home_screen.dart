@@ -191,7 +191,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   _drawerItem(Icons.logout, 'Log Out', () async {
                     Navigator.pop(context);
                     await ref.read(authServiceProvider).signOut();
-                    if (context.mounted) context.go(RouteNames.welcome);
+                    if (context.mounted) context.go(RouteNames.landing);
                   }),
                 ],
               ),

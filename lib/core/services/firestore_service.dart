@@ -38,6 +38,16 @@ class FirestoreService {
     });
   }
 
+  Future<List<GroupModel>> getUserGroups(String userId) async {
+    final memberSnap = await _firestore.collectionGroup('members')
+        .where('userId', isEqualTo: userId)
+        .get();
+    if (memberSnap.docs.isEmpty) return [];
+    final groupIds = memberSnap.docs.map((doc) => doc.reference.parent.parent!.id).toSet().toList();
+    final groupSnap = await _groups.where(FieldPath.documentId, whereIn: groupIds).get();
+    return groupSnap.docs.map((doc) => GroupModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList();
+  }
+
   Stream<List<GroupModel>> streamUserGroups(List<String> groupIds) {
     if (groupIds.isEmpty) return Stream.value([]);
     return _groups.where(FieldPath.documentId, whereIn: groupIds).snapshots().map((snap) {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_illustrations.dart';
@@ -33,7 +32,7 @@ class GroupModelScreen extends StatelessWidget {
       id: 'funeral_welfare',
       name: 'Funeral Welfare',
       description: 'Burial society with death contributions, monthly fees, and emergency support for members.',
-      illustration: AppIllustrations.goal,
+      illustration: AppIllustrations.funeral,
       features: ['Death contributions', 'Monthly welfare fees', 'Emergency funds', 'Member visitations'],
       contributionTypes: ['Monthly Fee', 'Death Contribution', 'Emergency Levy'],
       color: AppColors.primary,
@@ -42,7 +41,7 @@ class GroupModelScreen extends StatelessWidget {
       id: 'investment_chama',
       name: 'Investment Chama',
       description: 'Pool savings for investments, dividends, and project funding with transparent tracking.',
-      illustration: AppIllustrations.mobileMarketing,
+      illustration: AppIllustrations.chama,
       features: ['Share contributions', 'Dividend tracking', 'Project funding', 'Loan disbursement'],
       contributionTypes: ['Share Purchase', 'Project Contribution', 'Loan Payment'],
       color: AppColors.secondary,
@@ -51,7 +50,7 @@ class GroupModelScreen extends StatelessWidget {
       id: 'church_group',
       name: 'Church Group',
       description: 'Manage tithes, offerings, building funds, and ministry contributions with ease.',
-      illustration: AppIllustrations.teamSpirit,
+      illustration: AppIllustrations.church,
       features: ['Tithe tracking', 'Offerings', 'Building fund', 'Ministry projects'],
       contributionTypes: ['Tithe', 'Offering', 'Building Fund', 'Ministry Project'],
       color: AppColors.success,
@@ -60,7 +59,7 @@ class GroupModelScreen extends StatelessWidget {
       id: 'sacco',
       name: 'SACCO',
       description: 'Savings and Credit Cooperative with member shares, loan management, and dividend payouts.',
-      illustration: AppIllustrations.wallet,
+      illustration: AppIllustrations.money,
       features: ['Member shares', 'Loan applications', 'Interest tracking', 'Dividend payouts'],
       contributionTypes: ['Share Contribution', 'Loan Repayment', 'Savings Deposit'],
       color: AppColors.warning,
@@ -69,7 +68,7 @@ class GroupModelScreen extends StatelessWidget {
       id: 'custom',
       name: 'Custom Group',
       description: 'Start from scratch. Define your own rules, contribution types, and member roles.',
-      illustration: AppIllustrations.groupChat,
+      illustration: AppIllustrations.people,
       features: ['Full customization', 'Any contribution types', 'Flexible rules', 'All features enabled'],
       contributionTypes: [],
       color: AppColors.info,
@@ -114,16 +113,13 @@ class GroupModelScreen extends StatelessWidget {
               children: [
                 Container(
                   width: 100, height: 100,
+                  clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
-                    color: model.color.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: SvgPicture.network(
-                      model.illustration,
-                      fit: BoxFit.contain,
-                    ),
+                  child: Image.network(
+                    model.illustration,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 const SizedBox(width: 20),

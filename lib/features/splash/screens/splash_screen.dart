@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_illustrations.dart';
@@ -22,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _navigate() async {
     await Future.delayed(const Duration(seconds: 2));
-    if (mounted) context.go(RouteNames.welcome);
+    if (mounted) context.go(RouteNames.landing);
   }
 
   @override
@@ -38,11 +37,11 @@ class _SplashScreenState extends State<SplashScreen> {
               bottom: 0,
               left: 0,
               right: 0,
-              child: SvgPicture.network(
-                AppIllustrations.community,
+              child: Image.network(
+                AppIllustrations.dashboard,
                 width: double.infinity,
                 height: 350,
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
               ),
             ),
             SafeArea(

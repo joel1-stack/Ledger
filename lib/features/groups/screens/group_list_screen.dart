@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_illustrations.dart';
+import '../../../core/models/group_model.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../core/services/firestore_service.dart';
@@ -17,8 +17,8 @@ class GroupListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final firebaseUser = ref.watch(currentUserProvider);
-    final profileAsync = firebaseUser != null
-        ? ref.watch(userProfileProvider(firebaseUser.uid))
+    final groupsAsync = firebaseUser != null
+        ? ref.watch(userGroupsProvider2(firebaseUser.uid))
         : null;
 
     return Scaffold(
@@ -30,17 +30,17 @@ class GroupListScreen extends ConsumerWidget {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await ref.read(authServiceProvider).signOut();
-              if (context.mounted) context.go(RouteNames.welcome);
+              if (context.mounted) context.go(RouteNames.landing);
             },
           ),
         ],
       ),
-      body: profileAsync == null || profileAsync is AsyncLoading
+      body: groupsAsync == null || groupsAsync is AsyncLoading
           ? _buildEmptyState()
-          : profileAsync.when(
-              data: (profile) => profile == null
+          : groupsAsync.when(
+              data: (groups) => groups.isEmpty
                   ? _buildEmptyState()
-                  : _buildGroupsList(context, ref, profile.groupIds),
+                  : _buildGroupsList(context, ref, groups),
               loading: () => const AppLoading(),
               error: (_, _) => _buildEmptyState(),
             ),
@@ -78,40 +78,32 @@ class GroupListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGroupsList(BuildContext context, WidgetRef ref, List<String> groupIds) {
-    if (groupIds.isEmpty) return _buildEmptyState();
-    final groups = ref.watch(userGroupsProvider(groupIds));
-    return groups.when(
-      data: (data) {
-        if (data.isEmpty) return _buildEmptyState();
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: data.length,
-          itemBuilder: (_, i) {
-            final group = data[i];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(16),
-                leading: CircleAvatar(
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  child: Text(group.name[0].toUpperCase(),
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
-                ),
-                title: Text(group.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text('${group.stats.totalMembers} members'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  ref.read(currentGroupIdProvider.notifier).state = group.id;
-                  context.go(RouteNames.home);
-                },
-              ),
-            );
-          },
+  Widget _buildGroupsList(BuildContext context, WidgetRef ref, List<GroupModel> groups) {
+    if (groups.isEmpty) return _buildEmptyState();
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: groups.length,
+      itemBuilder: (_, i) {
+        final group = groups[i];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            leading: CircleAvatar(
+              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+              child: Text(group.name[0].toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+            ),
+            title: Text(group.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text('${group.stats.totalMembers} members'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              ref.read(currentGroupIdProvider.notifier).state = group.id;
+              context.go(RouteNames.home);
+            },
+          ),
         );
       },
-      loading: () => const AppLoading(),
-      error: (_, _) => _buildEmptyState(),
     );
   }
 
@@ -122,9 +114,12 @@ class GroupListScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.network(
-              AppIllustrations.community,
-              width: 200, height: 200,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.network(
+                AppIllustrations.people,
+                width: 200, height: 200, fit: BoxFit.cover,
+              ),
             ),
             const SizedBox(height: 32),
             const Text(AppStrings.noGroups, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),

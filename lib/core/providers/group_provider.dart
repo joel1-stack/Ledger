@@ -12,3 +12,7 @@ final userGroupsProvider = FutureProvider.family<List<GroupModel>, List<String>>
   final groups = await ref.watch(firestoreServiceProvider).streamUserGroups(groupIds).first;
   return groups;
 });
+
+final userGroupsProvider2 = FutureProvider.family<List<GroupModel>, String>((ref, userId) async {
+  return await ref.watch(firestoreServiceProvider).getUserGroups(userId);
+});
