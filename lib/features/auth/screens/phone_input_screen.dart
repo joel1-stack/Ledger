@@ -36,7 +36,16 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     setState(() => _isLoading = true);
     try {
       final vid = await ref.read(phoneAuthProvider).sendOTP(_phoneController.text);
-      if (mounted) {
+      if (!mounted) return;
+      if (vid == 'auto_verified') {
+        final user = ref.read(currentUserProvider);
+        if (user != null) {
+          final profile = await ref.read(userProfileProvider(user.uid).future);
+          context.go(profile != null ? RouteNames.home : RouteNames.profileSetup);
+        } else {
+          context.go(RouteNames.profileSetup);
+        }
+      } else {
         context.push(RouteNames.otpVerify, extra: {'vid': vid, 'phone': _phoneController.text});
       }
     } catch (e) {
