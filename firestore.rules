@@ -93,7 +93,7 @@ service cloud.firestore {
     // ============================================
     match /groups/{groupId}/timeline/{eventId} {
       allow read: if isGroupMember(groupId);
-      allow create: if false;
+      allow create: if hasRole(groupId, ['chairman', 'treasurer', 'secretary']);
       allow update: if false;
       allow delete: if false;
     }

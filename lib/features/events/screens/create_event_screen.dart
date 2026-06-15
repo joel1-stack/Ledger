@@ -46,6 +46,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         'deadline': Timestamp.fromDate(_deadline),
         'status': 'active',
         'createdBy': user?.uid ?? '',
+        'createdByName': user?.displayName ?? user?.uid ?? '',
         'createdAt': FieldValue.serverTimestamp(),
       });
       if (mounted) Navigator.pop(context);

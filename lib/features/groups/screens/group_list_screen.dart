@@ -144,33 +144,46 @@ class GroupListScreen extends ConsumerWidget {
   }
 
   void _showJoinDialog(BuildContext context, WidgetRef ref) {
+    final codeCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text(AppStrings.joinGroup),
-        content: TextField(
-          decoration: const InputDecoration(hintText: 'Enter invite code'),
-          textCapitalization: TextCapitalization.characters,
-          onSubmitted: (code) async {
-            Navigator.pop(ctx);
-            final service = ref.read(firestoreServiceProvider);
-            final group = await service.getGroupByInviteCode(code);
-            if (group == null) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid invite code')));
-              }
-              return;
-            }
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Request sent to join ${group.name}. Wait for chairman approval.')),
-              );
-            }
-          },
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: codeCtrl,
+              decoration: const InputDecoration(hintText: 'Enter invite code'),
+              textCapitalization: TextCapitalization.characters,
+            ),
+            const SizedBox(height: 16),
+            Text('Ask the group chairman to add you. Share your phone number with them.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () {}, child: const Text('Join')),
+          ElevatedButton(
+            onPressed: () async {
+              final code = codeCtrl.text.trim();
+              if (code.isEmpty) return;
+              Navigator.pop(ctx);
+              final service = ref.read(firestoreServiceProvider);
+              final group = await service.getGroupByInviteCode(code);
+              if (!context.mounted) return;
+              if (group == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Invalid invite code')),
+                );
+                return;
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Group "${group.name}" found. Ask the chairman to add you.')),
+              );
+            },
+            child: const Text('Look Up'),
+          ),
         ],
       ),
     );

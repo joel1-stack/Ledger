@@ -70,7 +70,7 @@ class ApprovalListScreen extends ConsumerWidget {
                                     onPressed: () async {
                                       final user = ref.read(currentUserProvider);
                                       if (user == null) return;
-                                      await ref.read(firestoreServiceProvider).voteOnApproval(groupId, approval.id, user.uid, true);
+                                      await ref.read(firestoreServiceProvider).voteOnApproval(groupId, approval.id, user.uid, true, memberName: user.displayName ?? user.uid);
                                     },
                                     icon: const Icon(Icons.check, size: 18),
                                     label: const Text('Approve'),
@@ -86,7 +86,7 @@ class ApprovalListScreen extends ConsumerWidget {
                                     onPressed: () async {
                                       final user = ref.read(currentUserProvider);
                                       if (user == null) return;
-                                      await ref.read(firestoreServiceProvider).voteOnApproval(groupId, approval.id, user.uid, false);
+                                      await ref.read(firestoreServiceProvider).voteOnApproval(groupId, approval.id, user.uid, false, memberName: user.displayName ?? user.uid);
                                     },
                                     icon: const Icon(Icons.close, size: 18),
                                     label: const Text('Reject'),

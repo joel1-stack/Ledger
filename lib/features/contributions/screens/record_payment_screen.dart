@@ -52,6 +52,7 @@ class _RecordPaymentScreenState extends ConsumerState<RecordPaymentScreen> {
         'receiptUrl': null,
         'notes': _notesCtrl.text,
         'recordedBy': user?.uid ?? '',
+        'recordedByName': user?.displayName ?? user?.uid ?? '',
         'paidAt': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
       });

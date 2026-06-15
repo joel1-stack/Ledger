@@ -56,16 +56,18 @@ class FirestoreService {
   }
 
   Future<MemberModel> addMember(String groupId, Map<String, dynamic> data) async {
-    final doc = await membersRef(groupId).add(data);
-    final snapshot = await doc.get();
+    final memberId = data['userId'] as String;
+    await membersRef(groupId).doc(memberId).set(data);
     await _groups.doc(groupId).update({'stats.totalMembers': FieldValue.increment(1)});
-    return MemberModel.fromMap(snapshot.data()! as Map<String, dynamic>, doc.id);
+    final snapshot = await membersRef(groupId).doc(memberId).get();
+    return MemberModel.fromMap(snapshot.data()! as Map<String, dynamic>, memberId);
   }
 
   Future<void> addMembersBulk(String groupId, List<Map<String, dynamic>> members) async {
     final batch = _firestore.batch();
     for (final member in members) {
-      final docRef = membersRef(groupId).doc();
+      final memberId = member['userId'] as String;
+      final docRef = membersRef(groupId).doc(memberId);
       batch.set(docRef, member);
     }
     batch.update(_groups.doc(groupId), {'stats.totalMembers': FieldValue.increment(members.length)});
@@ -111,7 +113,7 @@ class FirestoreService {
       'groupId': groupId,
       'type': 'payment',
       'actorMemberId': data['recordedBy'],
-      'actorName': data['recordedBy'],
+      'actorName': data['recordedByName'] ?? data['recordedBy'],
       'description': '${data['memberName']} paid KES ${amount.toStringAsFixed(0)} - ${data['typeName']}',
       'targetType': 'contribution',
       'targetId': doc.id,
@@ -143,7 +145,7 @@ class FirestoreService {
       'groupId': groupId,
       'type': 'event',
       'actorMemberId': data['createdBy'],
-      'actorName': data['createdBy'],
+      'actorName': data['createdByName'] ?? data['createdBy'],
       'description': 'Event created: ${data['title']}',
       'targetType': 'event',
       'targetId': doc.id,
@@ -169,7 +171,7 @@ class FirestoreService {
       'groupId': groupId,
       'type': 'approval_request',
       'actorMemberId': data['requestedBy'],
-      'actorName': data['requestedBy'],
+      'actorName': data['requestedByName'] ?? data['requestedBy'],
       'description': 'Approval requested: ${data['description']}',
       'targetType': 'approval',
       'targetId': doc.id,
@@ -194,7 +196,7 @@ class FirestoreService {
     });
   }
 
-  Future<void> voteOnApproval(String groupId, String approvalId, String memberId, bool approve) async {
+  Future<void> voteOnApproval(String groupId, String approvalId, String memberId, bool approve, {String? memberName}) async {
     final field = approve ? 'approvedBy' : 'rejectedBy';
     await approvalsRef(groupId).doc(approvalId).update({
       field: FieldValue.arrayUnion([memberId]),
@@ -212,7 +214,7 @@ class FirestoreService {
         'groupId': groupId,
         'type': 'approval_resolved',
         'actorMemberId': memberId,
-        'actorName': memberId,
+        'actorName': memberName ?? memberId,
         'description': 'Approval resolved: ${data['description']} - Approved',
         'targetType': 'approval',
         'targetId': approvalId,
