@@ -38,15 +38,11 @@ class _SplashScreenState extends State<SplashScreen> {
               bottom: 0,
               left: 0,
               right: 0,
-              child: Opacity(
-                opacity: 0.15,
-                child: SvgPicture.network(
-                  AppIllustrations.community,
-                  width: double.infinity,
-                  height: 350,
-                  fit: BoxFit.contain,
-                  placeholderBuilder: (_) => const SizedBox(),
-                ),
+              child: SvgPicture.network(
+                AppIllustrations.community,
+                width: double.infinity,
+                height: 350,
+                fit: BoxFit.contain,
               ),
             ),
             SafeArea(
@@ -75,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   Text(
                     AppStrings.tagline,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.white.withValues(alpha: 0.9), height: 1.5),
+                    style: TextStyle(fontSize: 16, color: Colors.white, height: 1.5),
                   ),
                   const Spacer(flex: 3),
                   const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)),

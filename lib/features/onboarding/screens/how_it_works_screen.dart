@@ -36,6 +36,23 @@ class _HowItWorksScreenState extends State<HowItWorksScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _startAutoSlide();
+  }
+
+  void _startAutoSlide() {
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 5));
+      if (!mounted) return false;
+      if (_currentPage < _pages.length - 1) {
+        _controller.nextPage(duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+      }
+      return _currentPage < _pages.length - 1;
+    });
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -66,14 +83,6 @@ class _HowItWorksScreenState extends State<HowItWorksScreen> {
                           child: SvgPicture.network(
                             page.illustration,
                             fit: BoxFit.contain,
-                            placeholderBuilder: (_) => Container(
-                              width: 120, height: 120,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryLight,
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: const Icon(Icons.rocket_launch_rounded, size: 56, color: AppColors.primary),
-                            ),
                           ),
                         ),
                         const SizedBox(height: 40),

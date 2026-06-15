@@ -117,14 +117,6 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
                 child: SvgPicture.network(
                   AppIllustrations.report,
                   fit: BoxFit.contain,
-                  placeholderBuilder: (_) => Container(
-                    width: 80, height: 80,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Icon(Icons.description, size: 40, color: Colors.white),
-                  ),
                 ),
               ),
             ),

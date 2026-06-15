@@ -62,11 +62,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 SvgPicture.network(
                   AppIllustrations.dashboard,
                   width: 200, height: 200,
-                  placeholderBuilder: (_) => Container(
-                    width: 100, height: 100,
-                    decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(24)),
-                    child: const Icon(Icons.group_rounded, size: 48, color: Colors.white),
-                  ),
                 ),
                 const SizedBox(height: 32),
                 const Text('No Group Selected', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),

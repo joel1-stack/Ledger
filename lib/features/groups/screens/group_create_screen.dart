@@ -14,7 +14,8 @@ import '../../../shared/widgets/app_text_field.dart';
 import '../../../router/app_router.dart';
 
 class GroupCreateScreen extends ConsumerStatefulWidget {
-  const GroupCreateScreen({super.key});
+  final String? modelId;
+  const GroupCreateScreen({this.modelId, super.key});
 
   @override
   ConsumerState<GroupCreateScreen> createState() => _GroupCreateScreenState();
@@ -26,6 +27,58 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
   final _descController = TextEditingController();
   final List<Map<String, dynamic>> _contributionTypes = [];
   bool _isLoading = false;
+
+  static const _modelConfigs = {
+    'funeral_welfare': {
+      'name': 'Funeral Welfare',
+      'desc': 'Burial society supporting members during bereavement',
+      'types': [
+        {'name': 'Monthly Fee', 'amount': 500.0, 'frequency': 'monthly', 'mandatory': true},
+        {'name': 'Death Contribution', 'amount': 2000.0, 'frequency': 'as-needed', 'mandatory': true},
+        {'name': 'Emergency Levy', 'amount': 1000.0, 'frequency': 'as-needed', 'mandatory': false},
+      ],
+    },
+    'investment_chama': {
+      'name': 'Investment Chama',
+      'desc': 'Pool savings for investments and dividends',
+      'types': [
+        {'name': 'Share Purchase', 'amount': 1000.0, 'frequency': 'monthly', 'mandatory': true},
+        {'name': 'Project Contribution', 'amount': 5000.0, 'frequency': 'as-needed', 'mandatory': false},
+        {'name': 'Loan Payment', 'amount': 0.0, 'frequency': 'monthly', 'mandatory': false},
+      ],
+    },
+    'church_group': {
+      'name': 'Church Group',
+      'desc': 'Managing tithes, offerings, and ministry funds',
+      'types': [
+        {'name': 'Tithe', 'amount': 0.0, 'frequency': 'monthly', 'mandatory': false},
+        {'name': 'Offering', 'amount': 0.0, 'frequency': 'weekly', 'mandatory': false},
+        {'name': 'Building Fund', 'amount': 2000.0, 'frequency': 'monthly', 'mandatory': true},
+        {'name': 'Ministry Project', 'amount': 0.0, 'frequency': 'as-needed', 'mandatory': false},
+      ],
+    },
+    'sacco': {
+      'name': 'SACCO',
+      'desc': 'Savings and Credit Cooperative',
+      'types': [
+        {'name': 'Share Contribution', 'amount': 500.0, 'frequency': 'monthly', 'mandatory': true},
+        {'name': 'Loan Repayment', 'amount': 0.0, 'frequency': 'monthly', 'mandatory': false},
+        {'name': 'Savings Deposit', 'amount': 0.0, 'frequency': 'monthly', 'mandatory': false},
+      ],
+    },
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.modelId != null && _modelConfigs.containsKey(widget.modelId)) {
+      final config = _modelConfigs[widget.modelId]!;
+      _nameController.text = config['name'] as String;
+      _descController.text = config['desc'] as String;
+      final types = config['types'] as List<Map<String, dynamic>>;
+      _contributionTypes.addAll(types);
+    }
+  }
 
   @override
   void dispose() {
@@ -191,20 +244,15 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Center(
-          child: SizedBox(
-            width: 180, height: 140,
-            child: SvgPicture.network(
-              AppIllustrations.groupCreate,
-              fit: BoxFit.contain,
-              placeholderBuilder: (_) => Container(
-                width: 64, height: 64,
-                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-                child: const Icon(Icons.group_add_rounded, size: 32, color: AppColors.primary),
+          Center(
+            child: SizedBox(
+              width: 180, height: 140,
+              child: SvgPicture.network(
+                AppIllustrations.groupCreate,
+                fit: BoxFit.contain,
               ),
             ),
           ),
-        ),
         const SizedBox(height: 16),
         const Text('Create Your Group', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         const SizedBox(height: 24),
@@ -219,20 +267,15 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Center(
-          child: SizedBox(
-            width: 180, height: 140,
-            child: SvgPicture.network(
-              AppIllustrations.wallet,
-              fit: BoxFit.contain,
-              placeholderBuilder: (_) => Container(
-                width: 64, height: 64,
-                decoration: BoxDecoration(color: AppColors.secondary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-                child: const Icon(Icons.account_balance_wallet_rounded, size: 32, color: AppColors.secondary),
+          Center(
+            child: SizedBox(
+              width: 180, height: 140,
+              child: SvgPicture.network(
+                AppIllustrations.wallet,
+                fit: BoxFit.contain,
               ),
             ),
           ),
-        ),
         const SizedBox(height: 16),
         const Text('Set Contribution Types', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
@@ -270,20 +313,15 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Center(
-          child: SizedBox(
-            width: 180, height: 140,
-            child: SvgPicture.network(
-              AppIllustrations.teamWork,
-              fit: BoxFit.contain,
-              placeholderBuilder: (_) => Container(
-                width: 64, height: 64,
-                decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-                child: const Icon(Icons.admin_panel_settings_rounded, size: 32, color: AppColors.success),
+          Center(
+            child: SizedBox(
+              width: 180, height: 140,
+              child: SvgPicture.network(
+                AppIllustrations.teamWork,
+                fit: BoxFit.contain,
               ),
             ),
           ),
-        ),
         const SizedBox(height: 16),
         const Text('Roles & Invite', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         const SizedBox(height: 24),

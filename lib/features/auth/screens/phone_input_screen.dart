@@ -133,17 +133,6 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                 child: SvgPicture.network(
                   _mode == 'verifying' ? AppIllustrations.security : AppIllustrations.mobileApp,
                   fit: BoxFit.contain,
-                  placeholderBuilder: (_) => Container(
-                    width: 120, height: 120,
-                    decoration: BoxDecoration(
-                      gradient: _mode == 'verifying' ? AppColors.secondaryGradient : AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Icon(
-                      _mode == 'verifying' ? Icons.fingerprint : Icons.phone_android_rounded,
-                      size: 56, color: Colors.white,
-                    ),
-                  ),
                 ),
               ),
               const SizedBox(height: 40),

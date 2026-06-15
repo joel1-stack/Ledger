@@ -89,11 +89,6 @@ class _RecordPaymentScreenState extends ConsumerState<RecordPaymentScreen> {
                 child: SvgPicture.network(
                   AppIllustrations.recordPayment,
                   fit: BoxFit.contain,
-                  placeholderBuilder: (_) => Container(
-                    width: 64, height: 64,
-                    decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-                    child: const Icon(Icons.payments_rounded, size: 32, color: AppColors.success),
-                  ),
                 ),
               ),
             ),

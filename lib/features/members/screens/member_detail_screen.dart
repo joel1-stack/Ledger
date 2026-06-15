@@ -69,11 +69,10 @@ class MemberDetailScreen extends ConsumerWidget {
                                 children: [
                                   SizedBox(
                                     width: 120, height: 120,
-                                    child: SvgPicture.network(
-                                      AppIllustrations.emptyState,
-                                      fit: BoxFit.contain,
-                                      placeholderBuilder: (_) => Icon(Icons.receipt_long, size: 64, color: AppColors.textTertiary),
-                                    ),
+                                  child: SvgPicture.network(
+                                    AppIllustrations.emptyState,
+                                    fit: BoxFit.contain,
+                                  ),
                                   ),
                                   const SizedBox(height: 16),
                                   const Text('No contributions yet', style: TextStyle(color: AppColors.textTertiary, fontSize: 16)),

@@ -58,14 +58,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 child: SvgPicture.network(
                   AppIllustrations.profile,
                   fit: BoxFit.contain,
-                  placeholderBuilder: (_) => Container(
-                    width: 120, height: 120,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.secondaryGradient,
-                      borderRadius: BorderRadius.circular(60),
-                    ),
-                    child: const Icon(Icons.person_add_rounded, size: 56, color: Colors.white),
-                  ),
                 ),
               ),
               const SizedBox(height: 8),

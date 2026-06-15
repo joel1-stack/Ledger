@@ -90,14 +90,6 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                 child: SvgPicture.network(
                   AppIllustrations.security,
                   fit: BoxFit.contain,
-                  placeholderBuilder: (_) => Container(
-                    width: 120, height: 120,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [AppColors.info, Color(0xFF2563EB)]),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: const Icon(Icons.lock_outline_rounded, size: 56, color: Colors.white),
-                  ),
                 ),
               ),
               const SizedBox(height: 40),

@@ -26,14 +26,6 @@ class WelcomeScreen extends StatelessWidget {
                 child: SvgPicture.network(
                   AppIllustrations.community,
                   fit: BoxFit.contain,
-                  placeholderBuilder: (_) => Container(
-                    width: 120, height: 120,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(36),
-                    ),
-                    child: const Icon(Icons.people_alt_rounded, size: 72, color: Colors.white),
-                  ),
                 ),
               ),
               const SizedBox(height: 40),

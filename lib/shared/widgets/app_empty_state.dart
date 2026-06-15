@@ -30,14 +30,6 @@ class AppEmptyState extends StatelessWidget {
               child: SvgPicture.network(
                 url,
                 fit: BoxFit.contain,
-                placeholderBuilder: (_) => Container(
-                  width: 80, height: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(Icons.inbox_outlined, size: 40, color: AppColors.primary),
-                ),
               ),
             ),
             const SizedBox(height: 24),

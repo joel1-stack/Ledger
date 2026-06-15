@@ -53,7 +53,7 @@ class GroupListScreen extends ConsumerWidget {
                 child: SizedBox(
                   height: 52,
                   child: ElevatedButton.icon(
-                    onPressed: () => context.go(RouteNames.groupCreate),
+                    onPressed: () => context.go(RouteNames.groupModel),
                     icon: const Icon(Icons.add),
                     label: const Text(AppStrings.createGroup),
                     style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
@@ -125,11 +125,6 @@ class GroupListScreen extends ConsumerWidget {
             SvgPicture.network(
               AppIllustrations.community,
               width: 200, height: 200,
-              placeholderBuilder: (_) => Container(
-                width: 100, height: 100,
-                decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(24)),
-                child: const Icon(Icons.group_rounded, size: 48, color: Colors.white),
-              ),
             ),
             const SizedBox(height: 32),
             const Text(AppStrings.noGroups, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
