@@ -17,7 +17,7 @@ class AppEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = illustrationUrl ?? AppIllustrations.emptyState;
+    final url = illustrationUrl ?? AppIllustrations.emptySvg;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),

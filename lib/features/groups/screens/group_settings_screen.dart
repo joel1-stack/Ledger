@@ -35,69 +35,90 @@ class _GroupSettingsScreenState extends ConsumerState<GroupSettingsScreen> {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Group Info Card
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 32,
-                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                        child: Text(g.name[0].toUpperCase(), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(g.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text('Code: ${g.inviteCode}', style: const TextStyle(color: AppColors.textSecondary)),
-                    ],
-                  ),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: AppColors.primaryLight,
+                      child: Text(g.name[0].toUpperCase(),
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(g.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                    const SizedBox(height: 4),
+                    Text('Code: ${g.inviteCode}', style: TextStyle(color: AppColors.textSecondary)),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Group Rules Section
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.rule, color: AppColors.primary),
-                          const SizedBox(width: 8),
-                          const Text('Group Rules', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                        ],
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 36, height: 36,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.rule, color: AppColors.primary, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text('Group Rules', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _rulesCtrl,
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                        hintText: 'Describe your group rules...\ne.g.\n- Monthly contribution of KES 500\n- Meetings every 1st Sunday\n- 3-day notice for withdrawals',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.scaffoldBackground,
                       ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _rulesCtrl,
-                        maxLines: 5,
-                        decoration: InputDecoration(
-                          hintText: 'Describe your group rules...\ne.g.\n- Monthly contribution of KES 500\n- Meetings every 1st Sunday\n- 3-day notice for withdrawals',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _saveRules,
+                        icon: _savingRule
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.save),
+                        label: Text(_savingRule ? 'Saving...' : 'Save Rules'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _saveRules,
-                          icon: _savingRule
-                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Icon(Icons.save),
-                          label: Text(_savingRule ? 'Saving...' : 'Save Rules'),
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Other Settings
               _buildSettingTile(Icons.edit, 'Edit Group Name', () {}),
               _buildSettingTile(Icons.receipt_long, 'Contribution Types', () {}),
               _buildSettingTile(Icons.admin_panel_settings, 'Roles & Permissions', () {}),
@@ -114,10 +135,25 @@ class _GroupSettingsScreenState extends ConsumerState<GroupSettingsScreen> {
   }
 
   Widget _buildSettingTile(IconData icon, String title, VoidCallback onTap, {Color? color}) {
-    return Card(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
+      ),
       child: ListTile(
-        leading: Icon(icon, color: color ?? AppColors.primary),
-        title: Text(title, style: TextStyle(color: color ?? AppColors.textPrimary)),
+        leading: Container(
+          width: 36, height: 36,
+          decoration: BoxDecoration(
+            color: (color ?? AppColors.primary).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: color ?? AppColors.primary, size: 20),
+        ),
+        title: Text(title, style: TextStyle(color: color ?? AppColors.textPrimary, fontWeight: FontWeight.w500)),
         trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
         onTap: onTap,
       ),
@@ -132,7 +168,7 @@ class _GroupSettingsScreenState extends ConsumerState<GroupSettingsScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Rules saved!')),
+          const SnackBar(content: Text('Rules saved!'), behavior: SnackBarBehavior.floating),
         );
       }
     } catch (e) {

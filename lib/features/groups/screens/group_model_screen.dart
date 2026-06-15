@@ -4,151 +4,102 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_illustrations.dart';
 import '../../../router/app_router.dart';
 
-class GroupModel {
-  final String id;
-  final String name;
-  final String description;
-  final String illustration;
-  final List<String> features;
-  final List<String> contributionTypes;
-  final Color color;
-
-  const GroupModel({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.illustration,
-    required this.features,
-    required this.contributionTypes,
-    required this.color,
-  });
-}
-
 class GroupModelScreen extends StatelessWidget {
   const GroupModelScreen({super.key});
 
-  static const models = [
-    GroupModel(
-      id: 'funeral_welfare',
-      name: 'Funeral Welfare',
-      description: 'Burial society with death contributions, monthly fees, and emergency support for members.',
-      illustration: AppIllustrations.funeral,
-      features: ['Death contributions', 'Monthly welfare fees', 'Emergency funds', 'Member visitations'],
-      contributionTypes: ['Monthly Fee', 'Death Contribution', 'Emergency Levy'],
-      color: AppColors.primary,
-    ),
-    GroupModel(
-      id: 'investment_chama',
-      name: 'Investment Chama',
-      description: 'Pool savings for investments, dividends, and project funding with transparent tracking.',
-      illustration: AppIllustrations.chama,
-      features: ['Share contributions', 'Dividend tracking', 'Project funding', 'Loan disbursement'],
-      contributionTypes: ['Share Purchase', 'Project Contribution', 'Loan Payment'],
-      color: AppColors.secondary,
-    ),
-    GroupModel(
-      id: 'church_group',
-      name: 'Church Group',
-      description: 'Manage tithes, offerings, building funds, and ministry contributions with ease.',
-      illustration: AppIllustrations.church,
-      features: ['Tithe tracking', 'Offerings', 'Building fund', 'Ministry projects'],
-      contributionTypes: ['Tithe', 'Offering', 'Building Fund', 'Ministry Project'],
-      color: AppColors.success,
-    ),
-    GroupModel(
-      id: 'sacco',
-      name: 'SACCO',
-      description: 'Savings and Credit Cooperative with member shares, loan management, and dividend payouts.',
-      illustration: AppIllustrations.money,
-      features: ['Member shares', 'Loan applications', 'Interest tracking', 'Dividend payouts'],
-      contributionTypes: ['Share Contribution', 'Loan Repayment', 'Savings Deposit'],
-      color: AppColors.warning,
-    ),
-    GroupModel(
-      id: 'custom',
-      name: 'Custom Group',
-      description: 'Start from scratch. Define your own rules, contribution types, and member roles.',
-      illustration: AppIllustrations.people,
-      features: ['Full customization', 'Any contribution types', 'Flexible rules', 'All features enabled'],
-      contributionTypes: [],
-      color: AppColors.info,
-    ),
+  static const _modelKeys = [
+    'funeral_welfare',
+    'investment_chama',
+    'wedding',
+    'community_project',
+    'sacco',
+    'church',
+    'custom',
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Choose a Model'),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.background,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: models.length,
-        itemBuilder: (_, i) => _buildModelCard(context, models[i]),
+        itemCount: _modelKeys.length,
+        itemBuilder: (_, i) => _buildModelCard(context, _modelKeys[i]),
       ),
     );
   }
 
-  Widget _buildModelCard(BuildContext context, GroupModel model) {
+  Widget _buildModelCard(BuildContext context, String modelKey) {
+    final visual = AppIllustrations.modelVisuals[modelKey]!;
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      height: 120,
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => context.go(RouteNames.groupCreate, extra: model.id),
-          child: Padding(
+          onTap: () => context.go(RouteNames.groupCreate, extra: modelKey),
+          child: Container(
+            decoration: BoxDecoration(gradient: visual.gradient),
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
                 Container(
-                  width: 100, height: 100,
-                  clipBehavior: Clip.antiAlias,
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Image.network(
-                    model.illustration,
-                    fit: BoxFit.cover,
-                  ),
+                  child: Icon(visual.icon, color: Colors.white, size: 28),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(model.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 6),
-                      Text(model.description,
-                          maxLines: 2, overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4)),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: model.features.take(3).map((f) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: model.color.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(f, style: TextStyle(fontSize: 11, color: model.color, fontWeight: FontWeight.w500)),
-                        )).toList(),
+                      Text(
+                        visual.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        visual.subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.8),
+                          height: 1.3,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white.withValues(alpha: 0.5),
+                  size: 16,
+                ),
               ],
             ),
           ),

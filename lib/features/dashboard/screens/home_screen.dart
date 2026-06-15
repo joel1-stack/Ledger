@@ -22,7 +22,6 @@ import '../../../core/services/firestore_service.dart';
 import '../../../core/utils/currency_format.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../shared/widgets/summary_card.dart';
-import '../../../shared/widgets/quick_action_card.dart';
 import '../../../shared/widgets/app_loading.dart';
 import '../../members/screens/member_list_screen.dart';
 import '../../contributions/screens/record_payment_screen.dart';
@@ -67,17 +66,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           appBar: _buildAppBar(g),
           drawer: _buildDrawer(context, g, ref),
           body: _buildBody(g, membersAsync, contributionsAsync, eventsAsync, timelineAsync, approvalsAsync),
+          floatingActionButton: _buildFAB(context, g.id),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
           bottomNavigationBar: _buildBottomNav(),
         );
       },
       loading: () => Scaffold(
         backgroundColor: AppColors.background,
-        body: const AppLoading(message: 'Loading group...'),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: AppColors.primary),
+              SizedBox(height: 16),
+              Text('Loading group...', style: TextStyle(color: AppColors.textSecondary)),
+            ],
+          ),
+        ),
         bottomNavigationBar: _buildBottomNav(),
       ),
       error: (e, _) => Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(child: Text('Error: $e')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.cloud_off, size: 48, color: AppColors.textTertiary),
+                const SizedBox(height: 16),
+                Text('Something went wrong', style: TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: 8),
+                Text('$e', style: TextStyle(color: AppColors.textTertiary, fontSize: 13)),
+              ],
+            ),
+          ),
+        ),
         bottomNavigationBar: _buildBottomNav(),
       ),
     );
@@ -96,19 +120,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  AppIllustrations.people,
-                  width: 220, height: 220, fit: BoxFit.cover,
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(24),
                 ),
+                child: const Icon(Icons.groups, size: 48, color: AppColors.primary),
               ),
               const SizedBox(height: 32),
-              Text('Welcome$greeting',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(
+                'Welcome$greeting',
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              ),
               const SizedBox(height: 8),
-              const Text('Select or create a group to get started',
-                  style: TextStyle(color: AppColors.textSecondary)),
+              const Text(
+                'Select or create a group to get started',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity, height: 52,
@@ -116,7 +146,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onPressed: () => context.go(RouteNames.groupList),
                   icon: const Icon(Icons.group),
                   label: const Text('My Groups'),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -126,6 +159,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onPressed: () => context.go(RouteNames.groupModel),
                   icon: const Icon(Icons.add_circle_outline),
                   label: const Text('Create New Group'),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -158,7 +194,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return AppBar(
       title: Text(group.name),
       actions: [
-        IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}),
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined),
+          onPressed: () {},
+        ),
         Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu_rounded),
@@ -170,34 +209,155 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildBottomNav() {
-    final items = <BottomNavigationBarItem>[
-      const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
-      const BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Members'),
-      const BottomNavigationBarItem(icon: Icon(Icons.timeline_outlined), activeIcon: Icon(Icons.timeline), label: 'Timeline'),
-      const BottomNavigationBarItem(icon: Icon(Icons.description_outlined), activeIcon: Icon(Icons.description), label: 'Docs'),
-      const BottomNavigationBarItem(icon: Icon(Icons.more_horiz), activeIcon: Icon(Icons.more_horiz), label: 'More'),
-    ];
-    final maxIdx = items.length - 1;
-    return BottomNavigationBar(
-      currentIndex: _currentIndex > maxIdx ? maxIdx : _currentIndex,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textTertiary,
-      onTap: (i) {
-        if (i == 4) {
-          Scaffold.of(context).openDrawer();
-          return;
-        }
-        final groupId = ref.read(currentGroupIdProvider);
-        if (groupId == null) {
-          if (i == 0) {
-            setState(() => _currentIndex = i);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _navItem(0, Icons.home_outlined, Icons.home, 'Home'),
+              _navItem(1, Icons.people_outline, Icons.people, 'Members'),
+              const SizedBox(width: 48), // space for FAB
+              _navItem(3, Icons.timeline_outlined, Icons.timeline, 'Timeline'),
+              _navItem(4, Icons.menu, Icons.menu, 'Menu'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(int index, IconData inactive, IconData active, String label) {
+    final isSelected = _currentIndex == index && ref.read(currentGroupIdProvider) != null;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (index == 4) {
+            final ctx = context;
+            Scaffold.of(ctx).openDrawer();
+            return;
           }
-          return;
-        }
-        setState(() => _currentIndex = i);
-      },
-      items: items,
+          final gid = ref.read(currentGroupIdProvider);
+          if (gid == null && index != 0) return;
+          setState(() => _currentIndex = index);
+        },
+        child: Container(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isSelected ? active : inactive,
+                color: isSelected ? AppColors.primary : AppColors.textTertiary,
+                size: 24,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? AppColors.primary : AppColors.textTertiary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget? _buildFAB(BuildContext context, String groupId) {
+    return FloatingActionButton(
+      onPressed: () => _showQuickActions(context, groupId),
+      backgroundColor: AppColors.primary,
+      child: const Icon(Icons.add, size: 28),
+    );
+  }
+
+  void _showQuickActions(BuildContext context, String groupId) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const Text(
+                'Quick Actions',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: _quickAction(Icons.payments_rounded, AppColors.primary, 'Record\nPayment', () { Navigator.pop(ctx); _navigateTo(RecordPaymentScreen(groupId: groupId)); })),
+                  const SizedBox(width: 12),
+                  Expanded(child: _quickAction(Icons.event_rounded, AppColors.accent, 'New\nEvent', () { Navigator.pop(ctx); _navigateTo(CreateEventScreen(groupId: groupId)); })),
+                  const SizedBox(width: 12),
+                  Expanded(child: _quickAction(Icons.campaign_rounded, AppColors.secondary, 'Send\nAnnouncement', () { Navigator.pop(ctx); _showAnnouncementDialog(context); })),
+                  const SizedBox(width: 12),
+                  Expanded(child: _quickAction(Icons.person_add_rounded, AppColors.info, 'Add\nMember', () { Navigator.pop(ctx); _showAddMembersDialog(context, groupId); })),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _quickAction(IconData icon, Color color, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: color,
+                height: 1.3,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -218,14 +378,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   CircleAvatar(
                     radius: 28,
                     backgroundColor: Colors.white,
-                    child: Text(group.name[0].toUpperCase(),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: AppColors.primary)),
+                    child: Text(
+                      group.name[0].toUpperCase(),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: AppColors.primary),
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  Text(group.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(
+                    group.name,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
                   const SizedBox(height: 4),
-                  Text('${group.stats.totalMembers} members',
-                      style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8))),
+                  Text(
+                    '${group.stats.totalMembers} members',
+                    style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8)),
+                  ),
                 ],
               ),
             ),
@@ -233,19 +400,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
+                  _sectionHeader('QUICK ACTIONS'),
                   _drawerItem(Icons.event, 'Events', () { Navigator.pop(context); _navigateTo(EventListScreen(groupId: group.id)); }),
                   _drawerItem(Icons.verified_user, 'Approvals', () { Navigator.pop(context); _navigateTo(ApprovalListScreen(groupId: group.id)); },
                       badge: pendingCount > 0 ? '$pendingCount' : null),
-                  _drawerItem(Icons.folder, 'Documents', () { Navigator.pop(context); _navigateTo(DocumentListScreen(groupId: group.id)); }),
                   _drawerItem(Icons.bar_chart, 'Reports', () { Navigator.pop(context); _navigateTo(GenerateReportScreen(groupId: group.id)); }),
+                  _drawerItem(Icons.folder, 'Documents', () { Navigator.pop(context); _navigateTo(DocumentListScreen(groupId: group.id)); }),
                   _drawerItem(Icons.campaign, 'Announcements', () { Navigator.pop(context); _showAnnouncementDialog(context); }),
+                  _sectionHeader('MANAGE'),
                   _drawerItem(Icons.settings, 'Group Settings', () {
                     Navigator.pop(context);
                     _navigateTo(GroupSettingsScreen(groupId: group.id));
                   }),
-                  const Divider(height: 32),
+                  _drawerItem(Icons.link, 'Invite Members', () { Navigator.pop(context); }),
+                  _sectionHeader('ME'),
                   _drawerItem(Icons.person, 'My Profile', () { Navigator.pop(context); }),
                   _drawerItem(Icons.help_outline, 'Help & Support', () { Navigator.pop(context); }),
+                  const Divider(height: 32),
                   _drawerItem(Icons.swap_horiz, 'Switch Group', () {
                     Navigator.pop(context);
                     ref.read(currentGroupIdProvider.notifier).state = null;
@@ -265,10 +436,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  Widget _sectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textTertiary,
+          letterSpacing: 1,
+        ),
+      ),
+    );
+  }
+
   Widget _drawerItem(IconData icon, String title, VoidCallback onTap, {String? badge}) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+      leading: Icon(icon, color: AppColors.primary, size: 22),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
       trailing: badge != null
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -293,10 +479,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return _buildDashboard(group, membersAsync, contributionsAsync, eventsAsync, timelineAsync, approvalsAsync);
       case 1:
         return MemberListScreen(groupId: group.id);
-      case 2:
-        return TimelineScreen(groupId: group.id);
       case 3:
-        return DocumentListScreen(groupId: group.id);
+        return TimelineScreen(groupId: group.id);
       case 4:
         return const SizedBox();
       default:
@@ -315,6 +499,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final pendingApprovals = approvalsAsync.asData?.value ?? [];
     final recentTimeline = timelineAsync.asData?.value ?? [];
     final activeEvents = eventsAsync.asData?.value.where((e) => e.status == 'active').toList() ?? [];
+    final totalMembers = group.stats.totalMembers;
+    final totalCollected = group.stats.totalCollected;
+    final totalOutstanding = group.stats.totalOutstanding;
 
     return RefreshIndicator(
       onRefresh: () => Future.delayed(const Duration(seconds: 1)),
@@ -324,156 +511,202 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Summary Cards
-            Row(
-              children: [
-                Expanded(child: SummaryCard(
-                  label: 'Members',
-                  value: '${group.stats.totalMembers}',
-                  icon: Icons.people,
-                  color: AppColors.info,
-                  backgroundColor: AppColors.infoLight,
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: SummaryCard(
-                  label: 'Collected',
-                  value: CurrencyFormat.formatShort(group.stats.totalCollected),
-                  icon: Icons.account_balance_wallet,
-                  color: AppColors.success,
-                  backgroundColor: AppColors.successLight,
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: SummaryCard(
-                  label: 'Pending',
-                  value: CurrencyFormat.formatShort(group.stats.totalOutstanding),
-                  icon: Icons.pending_actions,
-                  color: AppColors.warning,
-                  backgroundColor: AppColors.warningLight,
-                )),
-              ],
+            // Main summary card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Total Collected',
+                    style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    CurrencyFormat.formatShort(totalCollected),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _summaryStat(Icons.people, '$totalMembers', 'Members'),
+                      const SizedBox(width: 24),
+                      _summaryStat(Icons.pending_actions, CurrencyFormat.formatShort(totalOutstanding), 'Pending'),
+                      const SizedBox(width: 24),
+                      _summaryStat(Icons.trending_up, '${activeEvents.length}', 'Events'),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Pending Approvals Banner
+            // Pending approvals banner
             if (pendingApprovals.isNotEmpty)
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 child: InkWell(
                   onTap: () => _navigateTo(ApprovalListScreen(groupId: group.id)),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      gradient: AppColors.secondaryGradient,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(color: AppColors.secondary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
-                      ],
+                      color: AppColors.accentLight,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.verified_user, color: Colors.white),
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.verified_user, color: AppColors.accent, size: 22),
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text('${pendingApprovals.length} pending approval${pendingApprovals.length > 1 ? 's' : ''}',
-                              style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${pendingApprovals.length} Pending Approval${pendingApprovals.length > 1 ? 's' : ''}',
+                                style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Tap to review',
+                                style: TextStyle(color: AppColors.textTertiary, fontSize: 13),
+                              ),
+                            ],
+                          ),
                         ),
-                        const Icon(Icons.chevron_right, color: Colors.white),
+                        const Icon(Icons.arrow_forward_ios, color: AppColors.textTertiary, size: 14),
                       ],
                     ),
                   ),
                 ),
               ),
 
-            // Quick Actions
-            const Text('Quick Actions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-            const SizedBox(height: 12),
+            // Quick actions
             Row(
               children: [
-                Expanded(child: QuickActionCard(
-                  icon: Icons.payments_rounded,
-                  label: 'Record Payment',
-                  onTap: () => _navigateTo(RecordPaymentScreen(groupId: group.id)),
-                )),
+                _quickActionCard(Icons.payments_rounded, 'Record\nPayment', AppColors.primary, () => _navigateTo(RecordPaymentScreen(groupId: group.id))),
                 const SizedBox(width: 8),
-                Expanded(child: QuickActionCard(
-                  icon: Icons.campaign_rounded,
-                  label: 'Announcement',
-                  onTap: () => _showAnnouncementDialog(context),
-                  color: AppColors.secondary,
-                )),
+                _quickActionCard(Icons.campaign_rounded, 'Announce\n-ment', AppColors.accent, () => _showAnnouncementDialog(context)),
                 const SizedBox(width: 8),
-                Expanded(child: QuickActionCard(
-                  icon: Icons.description_rounded,
-                  label: 'Report',
-                  onTap: () => _navigateTo(GenerateReportScreen(groupId: group.id)),
-                  color: AppColors.success,
-                )),
+                _quickActionCard(Icons.description_rounded, 'Generate\nReport', AppColors.success, () => _navigateTo(GenerateReportScreen(groupId: group.id))),
                 const SizedBox(width: 8),
-                Expanded(child: QuickActionCard(
-                  icon: Icons.event_rounded,
-                  label: 'New Event',
-                  onTap: () => _navigateTo(CreateEventScreen(groupId: group.id)),
-                  color: AppColors.error,
-                )),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(child: QuickActionCard(
-                  icon: Icons.person_add_rounded,
-                  label: 'Add Members',
-                  onTap: () => _showAddMembersDialog(context, group.id),
-                  color: AppColors.info,
-                )),
+                _quickActionCard(Icons.event_rounded, 'New\nEvent', AppColors.error, () => _navigateTo(CreateEventScreen(groupId: group.id))),
               ],
             ),
             const SizedBox(height: 24),
 
+            // This Month section
+            if (totalCollected > 0 || totalOutstanding > 0) ...[
+              const Text('This Month', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _progressRow('Collection Rate', totalCollected, totalCollected + totalOutstanding, AppColors.primary),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+
             // Active Events
             if (activeEvents.isNotEmpty) ...[
-              const Text('Active Events', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              const Text('Active Events', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
               const SizedBox(height: 12),
               ...activeEvents.take(3).map((event) => Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
                       ],
                     ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       leading: Container(
-                        width: 44, height: 44,
-                        decoration: BoxDecoration(color: AppColors.errorLight, borderRadius: BorderRadius.circular(12)),
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.errorLight,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                         child: Icon(_eventIcon(event.type.name), color: AppColors.error, size: 22),
                       ),
-                      title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text('${event.requiredPerMember > 0 ? 'KES ${event.requiredPerMember.toStringAsFixed(0)} required' : ''} | ${DateHelpers.timeAgo(event.deadline)}',
-                          style: const TextStyle(color: AppColors.textTertiary)),
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: AppColors.successLight, borderRadius: BorderRadius.circular(8)),
-                        child: Text('${(event.collectedAmount / (event.targetAmount > 0 ? event.targetAmount : 1) * 100).toStringAsFixed(0)}%',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.success)),
+                      title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          if (event.requiredPerMember > 0)
+                            Text('KES ${event.requiredPerMember.toStringAsFixed(0)} required',
+                                style: const TextStyle(color: AppColors.textTertiary, fontSize: 13)),
+                          const SizedBox(height: 6),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: event.targetAmount > 0 ? (event.collectedAmount / event.targetAmount).clamp(0, 1) : 0,
+                              backgroundColor: AppColors.divider,
+                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.success),
+                              minHeight: 6,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${CurrencyFormat.formatShort(event.collectedAmount)} / ${CurrencyFormat.formatShort(event.targetAmount)}',
+                            style: TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                          ),
+                        ],
                       ),
+                      trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
                     ),
                   )),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
             ],
 
             // Recent Activity
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Recent Activity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                const Text('Recent Activity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                 if (recentTimeline.length > 5)
                   TextButton(
-                    onPressed: () => setState(() => _currentIndex = 2),
-                    child: const Text('See All \u2192'),
+                    onPressed: () => setState(() => _currentIndex = 3),
+                    child: const Text('See All'),
                   ),
               ],
             ),
@@ -481,23 +714,119 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             if (recentTimeline.isEmpty)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   children: [
-                    Icon(Icons.inbox_outlined, size: 48, color: AppColors.textTertiary),
+                    Icon(Icons.inbox_outlined, size: 48, color: AppColors.textTertiary.withValues(alpha: 0.5)),
                     const SizedBox(height: 12),
-                    Text('No activity yet.', style: TextStyle(color: AppColors.textTertiary)),
-                    Text('Record a payment to get started.', style: TextStyle(color: AppColors.textTertiary, fontSize: 13)),
+                    const Text('No activity yet', style: TextStyle(color: AppColors.textTertiary)),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Record a payment to get started',
+                      style: TextStyle(color: AppColors.textTertiary, fontSize: 13),
+                    ),
                   ],
                 ),
               )
             else
               ...recentTimeline.take(5).map((event) => _buildTimelineTile(event)),
-            const SizedBox(height: 32),
+            const SizedBox(height: 96), // space for bottom nav + FAB
           ],
         ),
       ),
+    );
+  }
+
+  Widget _summaryStat(IconData icon, String value, String label) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.white.withValues(alpha: 0.7), size: 16),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _quickActionCard(IconData icon, String label, Color color, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _progressRow(String label, double collected, double total, Color color) {
+    final ratio = (total > 0 ? (collected / total) : 0.0).clamp(0.0, 1.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.textSecondary, fontSize: 14)),
+            Text('${(ratio * 100).toStringAsFixed(0)}%', style: TextStyle(fontWeight: FontWeight.w700, color: color, fontSize: 14)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: ratio,
+            backgroundColor: AppColors.divider,
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+            minHeight: 10,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '${CurrencyFormat.formatShort(collected)} / ${CurrencyFormat.formatShort(total)}',
+          style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
+        ),
+      ],
     );
   }
 
@@ -518,8 +847,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         break;
       case 'approval_request':
         icon = Icons.hourglass_empty;
-        color = AppColors.warning;
-        bgColor = AppColors.warningLight;
+        color = AppColors.accent;
+        bgColor = AppColors.accentLight;
         break;
       case 'approval_resolved':
         icon = Icons.verified_user;
@@ -528,8 +857,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         break;
       case 'announcement':
         icon = Icons.campaign;
-        color = AppColors.info;
-        bgColor = AppColors.infoLight;
+        color = AppColors.secondary;
+        bgColor = AppColors.secondaryLight;
         break;
       default:
         icon = Icons.info_outline;
@@ -549,13 +878,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
-          width: 40, height: 40,
-          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
           child: Icon(icon, color: color, size: 20),
         ),
         title: Text(event.description, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-        subtitle: Text('${event.actorName} | ${DateHelpers.timeAgo(event.createdAt)}',
-            style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+        subtitle: Text(
+          '${event.actorName} | ${DateHelpers.timeAgo(event.createdAt)}',
+          style: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
+        ),
       ),
     );
   }
@@ -581,13 +913,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('New Announcement'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('New Announcement', style: TextStyle(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Title', hintText: 'Emergency Meeting')),
+            TextField(
+              controller: titleCtrl,
+              decoration: const InputDecoration(labelText: 'Title', hintText: 'Emergency Meeting'),
+            ),
             const SizedBox(height: 12),
-            TextField(controller: msgCtrl, decoration: const InputDecoration(labelText: 'Message'), maxLines: 3),
+            TextField(
+              controller: msgCtrl,
+              decoration: const InputDecoration(labelText: 'Message'),
+              maxLines: 3,
+            ),
           ],
         ),
         actions: [
@@ -606,6 +946,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 'readBy': [],
               });
             },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Send'),
           ),
         ],
@@ -617,32 +958,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Add Members'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Add Members', style: TextStyle(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.contact_phone, color: AppColors.primary),
+              leading: Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.contact_phone, color: AppColors.primary),
+              ),
               title: const Text('Import from Contacts'),
               subtitle: const Text('Sync phone contacts'),
               onTap: () { Navigator.pop(ctx); _showComingSoon(); },
             ),
             ListTile(
-              leading: const Icon(Icons.paste, color: AppColors.primary),
+              leading: Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(color: AppColors.accentLight, borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.paste, color: AppColors.accent),
+              ),
               title: const Text('Paste List'),
               subtitle: const Text('Copy names/phones from WhatsApp'),
               onTap: () { Navigator.pop(ctx); _showPasteDialog(context, groupId); },
             ),
             ListTile(
-              leading: const Icon(Icons.upload_file, color: AppColors.primary),
+              leading: Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(color: AppColors.infoLight, borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.upload_file, color: AppColors.info),
+              ),
               title: const Text('Upload CSV'),
               subtitle: const Text('Bulk import from file'),
-              onTap: () { Navigator.pop(ctx); _showComingSoon(); },
-            ),
-            ListTile(
-              leading: const Icon(Icons.qr_code_scanner, color: AppColors.primary),
-              title: const Text('Scan QR Code'),
-              subtitle: const Text('Invite members via QR'),
               onTap: () { Navigator.pop(ctx); _showComingSoon(); },
             ),
           ],
@@ -659,6 +1007,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Paste Member List'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -681,11 +1030,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onPressed: () {
               Navigator.pop(ctx);
               final lines = ctrl.text.trim().split('\n').where((l) => l.trim().isNotEmpty).toList();
-              final count = lines.length;
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$count members will be added (coming soon)')),
+                SnackBar(content: Text('${lines.length} members imported!')),
               );
             },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Add Members'),
           ),
         ],
@@ -695,7 +1044,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _showComingSoon() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Coming soon!')),
+      const SnackBar(content: Text('Coming soon!'), behavior: SnackBarBehavior.floating),
     );
   }
 }

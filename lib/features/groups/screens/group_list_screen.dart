@@ -76,7 +76,10 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
                     onPressed: () => context.go(RouteNames.groupModel),
                     icon: const Icon(Icons.add),
                     label: const Text(AppStrings.createGroup),
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
                   ),
                 ),
               ),
@@ -88,6 +91,9 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
                     onPressed: () => _showJoinDialog(context, ref),
                     icon: const Icon(Icons.login),
                     label: const Text(AppStrings.joinGroup),
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
                   ),
                 ),
               ),
@@ -113,7 +119,10 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
                   : null,
               filled: true,
               fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
             ),
             onChanged: (v) => setState(() {}),
             onSubmitted: (_) => _performSearch(),
@@ -128,20 +137,29 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
               itemCount: _searchResults.length,
               itemBuilder: (_, i) {
                 final group = _searchResults[i];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                    ],
+                  ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
                     leading: CircleAvatar(
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                      backgroundColor: AppColors.primaryLight,
                       child: Text(group.name[0].toUpperCase(),
                           style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                     ),
                     title: Text(group.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Text('${group.stats.totalMembers} members'),
+                    subtitle: Text('${group.stats.totalMembers} members',
+                        style: const TextStyle(color: AppColors.textTertiary)),
                     trailing: TextButton(
                       onPressed: () => _requestToJoin(group),
-                      child: const Text('Request to Join', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text('Request to Join',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                     ),
                   ),
                 );
@@ -150,11 +168,29 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
           )
         else if (_searchCtrl.text.isNotEmpty)
           const Expanded(
-            child: Center(child: Text('No groups found with that name')),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search_off, size: 48, color: AppColors.textTertiary),
+                  SizedBox(height: 16),
+                  Text('No groups found', style: TextStyle(color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
           )
         else
           const Expanded(
-            child: Center(child: Text('Type a group name to search')),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search, size: 48, color: AppColors.textTertiary),
+                  SizedBox(height: 16),
+                  Text('Type a group name to search', style: TextStyle(color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
           ),
       ],
     );
@@ -180,18 +216,33 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
       itemCount: groups.length,
       itemBuilder: (_, i) {
         final group = groups[i];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+            ],
+          ),
           child: ListTile(
             contentPadding: const EdgeInsets.all(16),
             leading: CircleAvatar(
-              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+              backgroundColor: AppColors.primaryLight,
               child: Text(group.name[0].toUpperCase(),
                   style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
             ),
             title: Text(group.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text('${group.stats.totalMembers} members'),
-            trailing: const Icon(Icons.chevron_right),
+            subtitle: Text('${group.stats.totalMembers} members',
+                style: const TextStyle(color: AppColors.textTertiary)),
+            trailing: Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.chevron_right, color: AppColors.primary, size: 18),
+            ),
             onTap: () {
               ref.read(currentGroupIdProvider.notifier).state = group.id;
               context.go(RouteNames.home);
@@ -209,15 +260,16 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.network(
-                AppIllustrations.people,
-                width: 200, height: 200, fit: BoxFit.cover,
+            Container(
+              width: 100, height: 100,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(24),
               ),
+              child: const Icon(Icons.groups, size: 48, color: AppColors.primary),
             ),
             const SizedBox(height: 32),
-            const Text(AppStrings.noGroups, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text(AppStrings.noGroups, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
             const SizedBox(height: 8),
             Text(AppStrings.noGroupsSub,
                 textAlign: TextAlign.center,
@@ -233,7 +285,8 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(AppStrings.joinGroup),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(AppStrings.joinGroup, style: TextStyle(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -265,6 +318,7 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
               }
               _showJoinConfirmDialog(context, ref, group);
             },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Look Up'),
           ),
         ],
@@ -276,16 +330,21 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Join ${group.name}?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Join ${group.name}?', style: const TextStyle(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             CircleAvatar(
               radius: 32,
-              child: Text(group.name[0].toUpperCase()),
+              backgroundColor: AppColors.primaryLight,
+              child: Text(group.name[0].toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
             ),
             const SizedBox(height: 16),
-            Text('${group.name}\n${group.stats.totalMembers} members'),
+            Text(group.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text('${group.stats.totalMembers} members',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
             const SizedBox(height: 16),
             Text('Your request will be sent to the group admin for approval.',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
@@ -300,6 +359,7 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
                 SnackBar(content: Text('Join request sent to ${group.name}')),
               );
             },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Request to Join'),
           ),
         ],

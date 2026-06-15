@@ -17,7 +17,7 @@ class MemberListScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Members'),
+        title: const Text('Members'),
         actions: [
           IconButton(icon: const Icon(Icons.person_add), onPressed: () {}),
         ],
@@ -37,7 +37,10 @@ class MemberListScreen extends ConsumerWidget {
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
@@ -47,15 +50,24 @@ class MemberListScreen extends ConsumerWidget {
                   itemCount: data.length,
                   itemBuilder: (_, i) {
                     final member = data[i];
-                    return Card(
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                        ],
+                      ),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                          backgroundColor: AppColors.primaryLight,
                           child: Text(member.name[0].toUpperCase(),
                               style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                         ),
                         title: Text(member.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        subtitle: Text('Member #${member.memberNumber}'),
+                        subtitle: Text('Member #${member.memberNumber}',
+                            style: const TextStyle(color: AppColors.textTertiary)),
                         trailing: _buildRoleBadge(member.role),
                         onTap: () => Navigator.push(context, MaterialPageRoute(
                           builder: (_) => MemberDetailScreen(groupId: groupId, memberId: member.id),
@@ -83,11 +95,11 @@ class MemberListScreen extends ConsumerWidget {
         label = 'Chairman';
         break;
       case MemberRole.treasurer:
-        color = AppColors.secondary;
+        color = AppColors.accent;
         label = 'Treasurer';
         break;
       case MemberRole.secretary:
-        color = AppColors.success;
+        color = AppColors.secondary;
         label = 'Secretary';
         break;
       case MemberRole.member:

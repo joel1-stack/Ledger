@@ -70,7 +70,7 @@ class MemberDetailScreen extends ConsumerWidget {
                                   SizedBox(
                                     width: 120, height: 120,
                                   child: SvgPicture.network(
-                                    AppIllustrations.emptyState,
+                                    AppIllustrations.emptySvg,
                                     fit: BoxFit.contain,
                                   ),
                                   ),

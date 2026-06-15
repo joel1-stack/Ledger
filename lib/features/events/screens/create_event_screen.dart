@@ -73,7 +73,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               child: SizedBox(
                 width: 160, height: 120,
                 child: SvgPicture.network(
-                  AppIllustrations.events,
+                  AppIllustrations.goal,
                   fit: BoxFit.contain,
                 ),
               ),

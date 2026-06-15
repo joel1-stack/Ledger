@@ -231,7 +231,15 @@ class _GroupJoinScreenState extends ConsumerState<GroupJoinScreen> {
               const Spacer(),
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image.network(AppIllustrations.bgJoin, height: 200, width: double.infinity, fit: BoxFit.cover),
+                child: Container(
+                    height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: AppColors.primaryGradient,
+                    ),
+                    child: const Icon(Icons.group, size: 80, color: Colors.white),
+                  ),
               ),
               const SizedBox(height: 32),
               const Text('Enter Invite Code', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),

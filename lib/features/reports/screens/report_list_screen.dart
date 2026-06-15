@@ -21,7 +21,7 @@ class ReportListScreen extends ConsumerWidget {
             child: SizedBox(
               width: 180, height: 140,
               child: SvgPicture.network(
-                AppIllustrations.report,
+                AppIllustrations.goal,
                 fit: BoxFit.contain,
               ),
             ),

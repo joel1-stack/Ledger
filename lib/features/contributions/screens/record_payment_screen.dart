@@ -87,7 +87,7 @@ class _RecordPaymentScreenState extends ConsumerState<RecordPaymentScreen> {
               child: SizedBox(
                 width: 160, height: 120,
                 child: SvgPicture.network(
-                  AppIllustrations.recordPayment,
+                  AppIllustrations.mobilePayments,
                   fit: BoxFit.contain,
                 ),
               ),

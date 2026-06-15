@@ -115,7 +115,7 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
               child: SizedBox(
                 width: 140, height: 140,
                 child: SvgPicture.network(
-                  AppIllustrations.report,
+                  AppIllustrations.goal,
                   fit: BoxFit.contain,
                 ),
               ),

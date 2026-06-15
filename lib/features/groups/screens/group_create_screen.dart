@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../core/services/firestore_service.dart';
@@ -22,6 +21,7 @@ class GroupCreateScreen extends ConsumerStatefulWidget {
 }
 
 class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
+  int _step = 1;
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _memberNameCtrl = TextEditingController();
@@ -83,6 +83,12 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
       ],
     },
   };
+
+  bool get _isCustom => widget.modelId == 'custom';
+  bool get _step1Valid =>
+      _nameCtrl.text.trim().isNotEmpty &&
+      _memberNameCtrl.text.trim().isNotEmpty &&
+      _phoneCtrl.text.trim().length >= 10;
 
   @override
   void initState() {
@@ -209,6 +215,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Verify Chairman'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -256,6 +263,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                   setDialogState(() => errorMsg = 'Invalid OTP. Try again or skip.');
                 }
               },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               child: const Text('Verify'),
             ),
           ],
@@ -273,87 +281,182 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isCustom = widget.modelId == 'custom';
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: Text(isCustom ? 'Custom Group' : 'Create Group'), backgroundColor: Colors.transparent),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.network(AppIllustrations.bgCreate, height: 140, width: 260, fit: BoxFit.cover),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text('Group Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            AppTextField(controller: _nameCtrl, label: 'Group Name *', hint: 'e.g. Mwangaza Welfare'),
-            const SizedBox(height: 12),
-            AppTextField(controller: _descCtrl, label: 'Description', hint: 'What is your group about?', maxLines: 3),
-            const SizedBox(height: 24),
-            const Text('Your Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            AppTextField(controller: _memberNameCtrl, label: 'Your Name *', hint: 'e.g. Joel Kaunda'),
-            const SizedBox(height: 12),
-            AppTextField(controller: _phoneCtrl, label: 'Your Phone *', hint: '+254712345678', keyboardType: TextInputType.phone),
-            if (_readSim != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.sim_card, size: 16, color: AppColors.success),
-                    const SizedBox(width: 6),
-                    Text('SIM: $_readSim', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 24),
-
-            // Contribution Types
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      appBar: AppBar(
+        title: Text(_isCustom ? 'Custom Group' : 'Create Group'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Column(
+        children: [
+          // Step indicator
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Row(
               children: [
-                const Text('Contribution Types', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                if (isCustom)
-                  TextButton.icon(
-                    onPressed: _showAddTypeDialog,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add Type'),
-                  ),
+                _stepDot(1, 'Details'),
+                _stepLine(1),
+                _stepDot(2, 'Types'),
+                _stepLine(2),
+                _stepDot(3, 'Review'),
               ],
             ),
-            const SizedBox(height: 8),
-            if (_types.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.receipt_long, color: AppColors.textTertiary, size: 32),
-                    const SizedBox(height: 8),
-                    Text('No contribution types yet',
-                        style: TextStyle(color: AppColors.textTertiary)),
-                    if (isCustom)
-                      Text('Add types above, or skip and add later',
-                          style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
-                  ],
-                ),
-              )
-            else
-              ..._types.asMap().entries.map((entry) => Card(
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: _step == 1 ? _buildStep1() : _step == 2 ? _buildStep2() : _buildStep3(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stepDot(int step, String label) {
+    final isActive = _step >= step;
+    final isDone = _step > step;
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isActive ? AppColors.primary : AppColors.divider,
+            ),
+            child: Center(
+              child: isDone
+                  ? const Icon(Icons.check, color: Colors.white, size: 18)
+                  : Text(
+                      '$step',
+                      style: TextStyle(
+                        color: isActive ? Colors.white : AppColors.textTertiary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              color: isActive ? AppColors.primary : AppColors.textTertiary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stepLine(int from) {
+    final isActive = _step > from;
+    return Container(
+      height: 2,
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(color: isActive ? AppColors.primary : AppColors.divider),
+    );
+  }
+
+  Widget _buildStep1() {
+    final modelName = widget.modelId != null && _modelConfigs.containsKey(widget.modelId)
+        ? _modelConfigs[widget.modelId]!['name'] as String
+        : _isCustom ? 'Custom' : null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (modelName != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                const SizedBox(width: 8),
+                Text(modelName, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
+              ],
+            ),
+          ),
+        const SizedBox(height: 24),
+        const Text('Group Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        const SizedBox(height: 16),
+        AppTextField(controller: _nameCtrl, label: 'Group Name *', hint: 'e.g. Mwangaza Welfare'),
+        const SizedBox(height: 12),
+        AppTextField(controller: _descCtrl, label: 'Description', hint: 'What is your group about?', maxLines: 3),
+        const SizedBox(height: 24),
+        const Text('Your Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        const SizedBox(height: 16),
+        AppTextField(controller: _memberNameCtrl, label: 'Your Name *', hint: 'e.g. Joel Kaunda'),
+        const SizedBox(height: 12),
+        AppTextField(controller: _phoneCtrl, label: 'Your Phone *', hint: '+254712345678', keyboardType: TextInputType.phone),
+        if (_readSim != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              children: [
+                Icon(Icons.sim_card, size: 16, color: AppColors.success),
+                const SizedBox(width: 6),
+                Text('SIM: $_readSim', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              ],
+            ),
+          ),
+        const SizedBox(height: 32),
+        AppButton(
+          label: 'Continue',
+          onPressed: _step1Valid ? () => setState(() => _step = 2) : null,
+          color: AppColors.primary,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStep2() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('What does your group collect?',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        const SizedBox(height: 16),
+        if (_types.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.receipt_long, color: AppColors.textTertiary, size: 40),
+                const SizedBox(height: 12),
+                const Text('No contribution types yet', style: TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: 4),
+                Text('Add types below, or skip and add later',
+                    style: TextStyle(color: AppColors.textTertiary, fontSize: 13)),
+              ],
+            ),
+          )
+        else
+          ..._types.asMap().entries.map((entry) => Card(
+                margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
-                  leading: const Icon(Icons.receipt_long, color: AppColors.primary),
-                  title: Text(entry.value['name']),
-                  subtitle: Text('KES ${(entry.value['amount'] as double).toStringAsFixed(0)} | ${entry.value['frequency']}'),
-                  trailing: isCustom
+                  leading: Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(12)),
+                    child: const Icon(Icons.receipt_long, color: AppColors.primary, size: 20),
+                  ),
+                  title: Text(entry.value['name'], style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text('KES ${(entry.value['amount'] as double).toStringAsFixed(0)} \u2022 ${entry.value['frequency']}',
+                      style: const TextStyle(color: AppColors.textTertiary, fontSize: 13)),
+                  trailing: _isCustom
                       ? IconButton(
                           icon: const Icon(Icons.close, size: 18, color: AppColors.error),
                           onPressed: () => _removeType(entry.key),
@@ -362,15 +465,146 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                   dense: true,
                 ),
               )),
-            const SizedBox(height: 16),
-            AppButton(
-              label: 'Create Group',
-              onPressed: (_nameCtrl.text.trim().isNotEmpty && _memberNameCtrl.text.trim().isNotEmpty && _phoneCtrl.text.trim().length >= 10) ? _create : null,
-              isLoading: _isLoading,
+        if (_isCustom) ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: _showAddTypeDialog,
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add Custom Contribution Type'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 48),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
-            const SizedBox(height: 32),
+          ),
+        ],
+        const SizedBox(height: 32),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => setState(() => _step = 1),
+                child: const Text('Back'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: AppButton(
+                label: 'Continue',
+                onPressed: () => setState(() => _step = 3),
+                color: AppColors.primary,
+              ),
+            ),
           ],
         ),
+      ],
+    );
+  }
+
+  Widget _buildStep3() {
+    final isCustom = _isCustom;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Review your group', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        const SizedBox(height: 20),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.group, color: AppColors.primary, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_nameCtrl.text, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text('${_types.length} contribution type${_types.length != 1 ? 's' : ''}',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 12),
+              _reviewRow(Icons.person, 'Chairman', _memberNameCtrl.text),
+              _reviewRow(Icons.phone, 'Phone', _phoneCtrl.text),
+              if (_descCtrl.text.isNotEmpty)
+                _reviewRow(Icons.description, 'Description', _descCtrl.text),
+              const SizedBox(height: 12),
+              const Divider(),
+              const SizedBox(height: 12),
+              const Text('Contribution Types', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 8),
+              ..._types.map((t) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check, size: 16, color: AppColors.success),
+                        const SizedBox(width: 8),
+                        Text(t['name'], style: const TextStyle(fontSize: 14)),
+                        const Spacer(),
+                        Text('KES ${(t['amount'] as double).toStringAsFixed(0)}',
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                      ],
+                    ),
+                  )),
+            ],
+          ),
+        ),
+        const SizedBox(height: 32),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => setState(() => _step = 2),
+                child: const Text('Back'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: AppButton(
+                label: 'Create Group',
+                onPressed: _create,
+                isLoading: _isLoading,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _reviewRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: AppColors.textTertiary),
+          const SizedBox(width: 8),
+          Text('$label: ', style: TextStyle(color: AppColors.textTertiary, fontSize: 14)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+        ],
       ),
     );
   }
@@ -381,6 +615,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Add Contribution Type'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -404,6 +639,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
               Navigator.pop(ctx);
               _addType();
             },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Add'),
           ),
         ],
