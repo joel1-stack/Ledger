@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/date_helpers.dart';
@@ -67,6 +70,21 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: SizedBox(
+                width: 160, height: 120,
+                child: SvgPicture.network(
+                  AppIllustrations.events,
+                  fit: BoxFit.contain,
+                  placeholderBuilder: (_) => Container(
+                    width: 64, height: 64,
+                    decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+                    child: const Icon(Icons.event, size: 32, color: AppColors.error),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             const Text('Event Type *', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Wrap(

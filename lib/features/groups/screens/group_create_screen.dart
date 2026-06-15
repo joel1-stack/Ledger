@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/firestore_service.dart';
@@ -189,12 +191,21 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 64, height: 64,
-          decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-          child: const Icon(Icons.group_add_rounded, size: 32, color: AppColors.primary),
+        Center(
+          child: SizedBox(
+            width: 180, height: 140,
+            child: SvgPicture.network(
+              AppIllustrations.groupCreate,
+              fit: BoxFit.contain,
+              placeholderBuilder: (_) => Container(
+                width: 64, height: 64,
+                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+                child: const Icon(Icons.group_add_rounded, size: 32, color: AppColors.primary),
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         const Text('Create Your Group', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         const SizedBox(height: 24),
         AppTextField(controller: _nameController, label: 'Group Name *', hint: 'e.g. Mwangaza Funeral Welfare'),
@@ -208,12 +219,21 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 64, height: 64,
-          decoration: BoxDecoration(color: AppColors.secondary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-          child: const Icon(Icons.account_balance_wallet_rounded, size: 32, color: AppColors.secondary),
+        Center(
+          child: SizedBox(
+            width: 180, height: 140,
+            child: SvgPicture.network(
+              AppIllustrations.wallet,
+              fit: BoxFit.contain,
+              placeholderBuilder: (_) => Container(
+                width: 64, height: 64,
+                decoration: BoxDecoration(color: AppColors.secondary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+                child: const Icon(Icons.account_balance_wallet_rounded, size: 32, color: AppColors.secondary),
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         const Text('Set Contribution Types', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         const Text('What does your group collect?', style: TextStyle(color: AppColors.textSecondary)),
@@ -250,12 +270,21 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 64, height: 64,
-          decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-          child: const Icon(Icons.admin_panel_settings_rounded, size: 32, color: AppColors.success),
+        Center(
+          child: SizedBox(
+            width: 180, height: 140,
+            child: SvgPicture.network(
+              AppIllustrations.teamWork,
+              fit: BoxFit.contain,
+              placeholderBuilder: (_) => Container(
+                width: 64, height: 64,
+                decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+                child: const Icon(Icons.admin_panel_settings_rounded, size: 32, color: AppColors.success),
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         const Text('Roles & Invite', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         const SizedBox(height: 24),
         ListTile(

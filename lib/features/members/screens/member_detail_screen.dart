@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/members_provider.dart';
 import '../../../core/providers/contributions_provider.dart';
 import '../../../core/utils/currency_format.dart';
@@ -61,7 +63,23 @@ class MemberDetailScreen extends ConsumerWidget {
                       contributionsAsync.when(
                         data: (records) {
                           if (records.isEmpty) {
-                            return const Text('No contributions yet', style: TextStyle(color: AppColors.textTertiary));
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 32),
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    width: 120, height: 120,
+                                    child: SvgPicture.network(
+                                      AppIllustrations.emptyState,
+                                      fit: BoxFit.contain,
+                                      placeholderBuilder: (_) => Icon(Icons.receipt_long, size: 64, color: AppColors.textTertiary),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text('No contributions yet', style: TextStyle(color: AppColors.textTertiary, fontSize: 16)),
+                                ],
+                              ),
+                            );
                           }
                           final totalPaid = records.where((r) => r.status.name == 'paid').fold<double>(0, (s, r) => s + r.amount);
                           return Column(
