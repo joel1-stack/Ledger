@@ -12,7 +12,8 @@ class AppIllustrations {
   static const String mobilePayments = '$baseUrl/mobile_payments_edgf.svg';
   static const String goal = '$baseUrl/goal_0v5v.svg';
 
-  static const String _imgBase = 'https://picsum.photos/seed';
+  static const String imgBase = 'https://picsum.photos/seed';
+  static const String _imgBase = imgBase;
 
   static Map<String, ModelVisual> get modelVisuals => _buildVisuals();
 
@@ -85,4 +86,8 @@ class ModelVisual {
     required this.subtitle,
     this.imageUrl,
   });
+
+  static String imageUrlForModel(String modelId) {
+    return AppIllustrations.modelVisuals[modelId]?.imageUrl ?? '${AppIllustrations._imgBase}/default/800/300';
+  }
 }

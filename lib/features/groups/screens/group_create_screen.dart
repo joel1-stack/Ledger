@@ -1,9 +1,16 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sms_autofill/sms_autofill.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_illustrations.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/group_provider.dart';
 import '../../../core/services/firestore_service.dart';
@@ -29,10 +36,13 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
   final _typeNameCtrl = TextEditingController();
   final _typeAmountCtrl = TextEditingController();
   final List<Map<String, dynamic>> _types = [];
-  final List<Map<String, String>> _docs = [];
+  final List<Map<String, dynamic>> _docs = [];
   final _docTitleCtrl = TextEditingController();
   String _docTypeValue = 'other';
+  Uint8List? _docFileBytes;
+  String? _docFileName;
   bool _isLoading = false;
+  bool _isUploading = false;
   String? _readSim;
 
   static const _modelConfigs = {
@@ -149,9 +159,16 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     final title = _docTitleCtrl.text.trim();
     if (title.isEmpty) return;
     setState(() {
-      _docs.add({'title': title, 'type': _docTypeValue});
+      _docs.add({
+        'title': title,
+        'type': _docTypeValue,
+        'fileName': _docFileName ?? '',
+        'fileBytes': _docFileBytes,
+      });
       _docTitleCtrl.clear();
       _docTypeValue = 'other';
+      _docFileBytes = null;
+      _docFileName = null;
     });
   }
 
@@ -200,10 +217,19 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
         });
       }
       for (final d in _docs) {
+        String fileUrl = '';
+        if (d['fileBytes'] != null && (d['fileBytes'] as Uint8List).isNotEmpty) {
+          final ext = (d['fileName'] as String?)?.split('.').last ?? 'bin';
+          final storageRef = FirebaseStorage.instance
+              .ref()
+              .child('groups/${group.id}/documents/${IdGenerator.generateId()}.$ext');
+          final uploadTask = await storageRef.putData(d['fileBytes'] as Uint8List);
+          fileUrl = await uploadTask.ref.getDownloadURL();
+        }
         await service.addDocument(group.id, {
           'title': d['title'],
           'type': d['type'],
-          'fileUrl': '',
+          'fileUrl': fileUrl,
           'uploadedBy': user.uid,
           'createdAt': FieldValue.serverTimestamp(),
         });
@@ -314,7 +340,20 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
         title: Text(_isCustom ? 'Custom Group' : 'Create Group'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        actions: [
+          Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+            ),
+          ),
+        ],
       ),
+      endDrawer: _buildDrawer(),
       body: Column(
         children: [
           // Step indicator
@@ -390,6 +429,57 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     );
   }
 
+  Widget _buildDrawer() {
+    final user = ref.read(currentUserProvider);
+    return Drawer(
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    child: const Icon(Icons.person, color: Colors.white, size: 30),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(user?.displayName ?? 'Create Group', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text('Start a new chama', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            _drawerItem(Icons.home_outlined, 'Home', () { Navigator.pop(context); context.go(RouteNames.dashboard); }),
+            _drawerItem(Icons.group_add_outlined, 'Create Group', () { Navigator.pop(context); }),
+            _drawerItem(Icons.search_outlined, 'Join Group', () { Navigator.pop(context); context.go(RouteNames.joinGroup); }),
+            _drawerItem(Icons.person_outline, 'Profile', () { Navigator.pop(context); context.go(RouteNames.profile); }),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('Ledger v1.0', style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _drawerItem(IconData icon, String label, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+      onTap: onTap,
+    );
+  }
+
   Widget _buildStep1() {
     final modelName = widget.modelId != null && _modelConfigs.containsKey(widget.modelId)
         ? _modelConfigs[widget.modelId]!['name'] as String
@@ -397,22 +487,72 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (modelName != null)
+        if (modelName != null) ...[
+          const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            height: 160,
+            width: double.infinity,
             decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(20),
+              gradient: (widget.modelId != null && _modelConfigs.containsKey(widget.modelId))
+                  ? AppColors.gradientForModel(widget.modelId!)
+                  : const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
             ),
-            child: Row(
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                Icon(Icons.check_circle, color: AppColors.primary, size: 20),
-                const SizedBox(width: 8),
-                Text(modelName, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
+                if (widget.modelId != null)
+                  Positioned(
+                    right: -20,
+                    top: -20,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.network(
+                        ModelVisual.imageUrlForModel(widget.modelId!),
+                        width: 220,
+                        height: 220,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox(),
+                      ),
+                    ),
+                  ),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.black.withValues(alpha: 0.5), Colors.transparent],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          Text(modelName,
+                              style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _modelConfigs[widget.modelId]?['desc'] as String? ?? '',
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        const SizedBox(height: 24),
+          ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.05, duration: 400.ms),
+          const SizedBox(height: 24),
+        ],
         const Text('Group Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
         const SizedBox(height: 16),
         AppTextField(controller: _nameCtrl, label: 'Group Name *', hint: 'e.g. Mwangaza Welfare'),
@@ -431,7 +571,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
               label: const Text('Add'),
             ),
           ],
-        ),
+        ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideX(begin: -0.03, duration: 400.ms),
         const SizedBox(height: 8),
         if (_docs.isEmpty)
           Container(
@@ -449,7 +589,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                     style: TextStyle(color: AppColors.textTertiary, fontSize: 13)),
               ],
             ),
-          )
+          ).animate().fadeIn(duration: 400.ms, delay: 150.ms)
         else
           ..._docs.asMap().entries.map((entry) => Container(
                 margin: const EdgeInsets.only(bottom: 6),
@@ -460,7 +600,10 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.description, color: AppColors.primary, size: 18),
+                    Icon(
+                      entry.value['fileBytes'] != null ? Icons.image : Icons.description,
+                      color: AppColors.primary, size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -468,8 +611,12 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                         children: [
                           Text(entry.value['title'] ?? '',
                               style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-                          Text(entry.value['type'] ?? '',
-                              style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+                          Text(
+                            entry.value['fileName'] != null && (entry.value['fileName'] as String).isNotEmpty
+                                ? (entry.value['fileName'] as String)
+                                : (entry.value['type'] as String),
+                            style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                          ),
                         ],
                       ),
                     ),
@@ -512,7 +659,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('What does your group collect?',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)).animate().fadeIn(duration: 400.ms).slideX(begin: -0.03, duration: 400.ms),
         const SizedBox(height: 16),
         if (_types.isEmpty)
           Container(
@@ -595,7 +742,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Review your group', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        const Text('Review your group', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)).animate().fadeIn(duration: 400.ms),
         const SizedBox(height: 20),
         Container(
           width: double.infinity,
@@ -666,18 +813,27 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Row(
                         children: [
-                          const Icon(Icons.description, size: 16, color: AppColors.info),
+                          Icon(
+                            d['fileBytes'] != null ? Icons.image : Icons.description,
+                            size: 16, color: AppColors.info,
+                          ),
                           const SizedBox(width: 8),
-                          Text(d['title'] ?? '', style: const TextStyle(fontSize: 14)),
-                          const Spacer(),
-                          Text(d['type'] ?? '', style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+                          Expanded(
+                            child: Text(d['title'] ?? '', style: const TextStyle(fontSize: 14)),
+                          ),
+                          Text(
+                            d['fileName'] != null && (d['fileName'] as String).isNotEmpty
+                                ? (d['fileName'] as String)
+                                : (d['type'] as String),
+                            style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                          ),
                         ],
                       ),
                     )),
               ],
             ],
           ),
-        ),
+        ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideY(begin: 0.05, duration: 400.ms),
         const SizedBox(height: 32),
         Row(
           children: [
@@ -717,6 +873,36 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     );
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: source, maxWidth: 1200, maxHeight: 1200);
+    if (picked != null) {
+      final bytes = await picked.readAsBytes();
+      setState(() {
+        _docFileBytes = bytes;
+        _docFileName = picked.name;
+      });
+    }
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'png', 'jpg', 'jpeg'],
+    );
+    if (result != null && result.files.isNotEmpty) {
+      final file = result.files.first;
+      Uint8List? bytes = file.bytes;
+      if (bytes == null && file.path != null) {
+        bytes = await File(file.path!).readAsBytes();
+      }
+      setState(() {
+        _docFileBytes = bytes ?? Uint8List(0);
+        _docFileName = file.name;
+      });
+    }
+  }
+
   void _showAddDocDialog() {
     _docTitleCtrl.clear();
     _docTypeValue = 'other';
@@ -726,30 +912,65 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
         builder: (ctx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Add Document'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _docTitleCtrl,
-                decoration: const InputDecoration(labelText: 'Document Title', hintText: 'e.g. Group Constitution'),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _docTypeValue,
-                decoration: const InputDecoration(labelText: 'Type'),
-                items: const [
-                  DropdownMenuItem(value: 'constitution', child: Text('Constitution')),
-                  DropdownMenuItem(value: 'minutes', child: Text('Minutes')),
-                  DropdownMenuItem(value: 'rules', child: Text('Rules')),
-                  DropdownMenuItem(value: 'receipt', child: Text('Receipt')),
-                  DropdownMenuItem(value: 'other', child: Text('Other')),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _docTitleCtrl,
+                  decoration: const InputDecoration(labelText: 'Document Title', hintText: 'e.g. Group Constitution'),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _docTypeValue,
+                  decoration: const InputDecoration(labelText: 'Type'),
+                  items: const [
+                    DropdownMenuItem(value: 'constitution', child: Text('Constitution')),
+                    DropdownMenuItem(value: 'minutes', child: Text('Minutes')),
+                    DropdownMenuItem(value: 'rules', child: Text('Rules')),
+                    DropdownMenuItem(value: 'receipt', child: Text('Receipt')),
+                    DropdownMenuItem(value: 'other', child: Text('Other')),
+                  ],
+                  onChanged: (v) => setDialogState(() => _docTypeValue = v ?? 'other'),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _pickButton(ctx, setDialogState, Icons.camera_alt, 'Camera', () => _pickImage(ImageSource.camera)),
+                    _pickButton(ctx, setDialogState, Icons.photo_library, 'Gallery', () => _pickImage(ImageSource.gallery)),
+                    _pickButton(ctx, setDialogState, Icons.attach_file, 'File', _pickFile),
+                  ],
+                ),
+                if (_docFileName != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle, size: 16, color: AppColors.success),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(_docFileName!, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
+                        ),
+                        GestureDetector(
+                          onTap: () => setDialogState(() { _docFileBytes = null; _docFileName = null; }),
+                          child: const Icon(Icons.close, size: 16, color: AppColors.error),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
-                onChanged: (v) => setDialogState(() => _docTypeValue = v ?? 'other'),
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(onPressed: () { _docFileBytes = null; _docFileName = null; Navigator.pop(ctx); }, child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
@@ -758,6 +979,30 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               child: const Text('Add'),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _pickButton(BuildContext ctx, StateSetter setDialogState, IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: () async {
+        await onTap();
+        setDialogState(() {});
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primaryLight,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: AppColors.primary, size: 22),
+            const SizedBox(height: 4),
+            Text(label, style: TextStyle(fontSize: 11, color: AppColors.primary)),
           ],
         ),
       ),

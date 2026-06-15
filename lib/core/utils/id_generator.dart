@@ -11,4 +11,9 @@ class IdGenerator {
   static int generateMemberNumber(int max) {
     return max + 1;
   }
+
+  static String generateId({int length = 20}) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    return List.generate(length, (_) => chars[_random.nextInt(chars.length)]).join();
+  }
 }
