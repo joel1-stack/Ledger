@@ -29,6 +29,9 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
   final _typeNameCtrl = TextEditingController();
   final _typeAmountCtrl = TextEditingController();
   final List<Map<String, dynamic>> _types = [];
+  final List<Map<String, String>> _docs = [];
+  final _docTitleCtrl = TextEditingController();
+  String _docTypeValue = 'other';
   bool _isLoading = false;
   String? _readSim;
 
@@ -123,6 +126,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     _phoneCtrl.dispose();
     _typeNameCtrl.dispose();
     _typeAmountCtrl.dispose();
+    _docTitleCtrl.dispose();
     super.dispose();
   }
 
@@ -139,6 +143,20 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
 
   void _removeType(int index) {
     setState(() => _types.removeAt(index));
+  }
+
+  void _addDoc() {
+    final title = _docTitleCtrl.text.trim();
+    if (title.isEmpty) return;
+    setState(() {
+      _docs.add({'title': title, 'type': _docTypeValue});
+      _docTitleCtrl.clear();
+      _docTypeValue = 'other';
+    });
+  }
+
+  void _removeDoc(int index) {
+    setState(() => _docs.removeAt(index));
   }
 
   Future<void> _create() async {
@@ -178,6 +196,15 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
         await service.addContributionType(group.id, {
           ...t,
           'groupId': group.id,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      for (final d in _docs) {
+        await service.addDocument(group.id, {
+          'title': d['title'],
+          'type': d['type'],
+          'fileUrl': '',
+          'uploadedBy': user.uid,
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
@@ -392,6 +419,68 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
         const SizedBox(height: 12),
         AppTextField(controller: _descCtrl, label: 'Description', hint: 'What is your group about?', maxLines: 3),
         const SizedBox(height: 24),
+
+        // Documents section
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Group Documents', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            TextButton.icon(
+              onPressed: _showAddDocDialog,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (_docs.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.scaffoldBackground,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.description_outlined, color: AppColors.textTertiary, size: 20),
+                const SizedBox(width: 8),
+                Text('Attach constitution, rules, or any document',
+                    style: TextStyle(color: AppColors.textTertiary, fontSize: 13)),
+              ],
+            ),
+          )
+        else
+          ..._docs.asMap().entries.map((entry) => Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.description, color: AppColors.primary, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(entry.value['title'] ?? '',
+                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                          Text(entry.value['type'] ?? '',
+                              style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _removeDoc(entry.key),
+                      child: Icon(Icons.close, size: 18, color: AppColors.error),
+                    ),
+                  ],
+                ),
+              )),
+        const SizedBox(height: 24),
         const Text('Your Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
         const SizedBox(height: 16),
         AppTextField(controller: _memberNameCtrl, label: 'Your Name *', hint: 'e.g. Joel Kaunda'),
@@ -567,6 +656,25 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                       ],
                     ),
                   )),
+              if (_docs.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 12),
+                const Text('Documents', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                const SizedBox(height: 8),
+                ..._docs.map((d) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.description, size: 16, color: AppColors.info),
+                          const SizedBox(width: 8),
+                          Text(d['title'] ?? '', style: const TextStyle(fontSize: 14)),
+                          const Spacer(),
+                          Text(d['type'] ?? '', style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+                        ],
+                      ),
+                    )),
+              ],
             ],
           ),
         ),
@@ -605,6 +713,53 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
           Text('$label: ', style: TextStyle(color: AppColors.textTertiary, fontSize: 14)),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
         ],
+      ),
+    );
+  }
+
+  void _showAddDocDialog() {
+    _docTitleCtrl.clear();
+    _docTypeValue = 'other';
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Add Document'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _docTitleCtrl,
+                decoration: const InputDecoration(labelText: 'Document Title', hintText: 'e.g. Group Constitution'),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _docTypeValue,
+                decoration: const InputDecoration(labelText: 'Type'),
+                items: const [
+                  DropdownMenuItem(value: 'constitution', child: Text('Constitution')),
+                  DropdownMenuItem(value: 'minutes', child: Text('Minutes')),
+                  DropdownMenuItem(value: 'rules', child: Text('Rules')),
+                  DropdownMenuItem(value: 'receipt', child: Text('Receipt')),
+                  DropdownMenuItem(value: 'other', child: Text('Other')),
+                ],
+                onChanged: (v) => setDialogState(() => _docTypeValue = v ?? 'other'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _addDoc();
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              child: const Text('Add'),
+            ),
+          ],
+        ),
       ),
     );
   }

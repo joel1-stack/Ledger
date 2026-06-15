@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_illustrations.dart';
 import '../../../shared/theme/app_strings.dart';
@@ -28,10 +30,10 @@ class LandingScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
+            // Header with profile icon
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -42,39 +44,47 @@ class LandingScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.auto_graph, color: Colors.white, size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Ledger',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.5,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    AppStrings.tagline,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    child: const Icon(Icons.auto_graph, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Ledger',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          AppStrings.tagline,
+                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Profile / Menu icon
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.scaffoldBackground,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.person_outline, color: AppColors.textSecondary, size: 22),
                   ),
                 ],
               ),
@@ -93,8 +103,13 @@ class LandingScreen extends ConsumerWidget {
                       color: AppColors.textPrimary,
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Choose a model or create from scratch',
+                    style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                  ),
                   const SizedBox(height: 16),
-                  ..._modelKeys.map((key) => _buildModelCard(context, key)),
+                  ..._modelKeys.asMap().entries.map((entry) => _buildModelCard(context, entry.key, entry.value)),
                   const SizedBox(height: 16),
                   _buildSearchCard(context),
                   const SizedBox(height: 16),
@@ -102,18 +117,32 @@ class LandingScreen extends ConsumerWidget {
               ),
             ),
 
-            // Bottom join button
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: OutlinedButton.icon(
-                  onPressed: () => context.go(RouteNames.groupJoin),
-                  icon: const Icon(Icons.login, size: 20),
-                  label: const Text(
-                    'Already have a code? Join Group',
-                    style: TextStyle(fontSize: 15),
+            // Bottom bar
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.go(RouteNames.groupJoin),
+                    icon: const Icon(Icons.login, size: 18),
+                    label: const Text('Have a code? Join Group'),
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      side: const BorderSide(color: AppColors.primary),
+                    ),
                   ),
                 ),
               ),
@@ -124,19 +153,19 @@ class LandingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildModelCard(BuildContext context, String modelKey) {
+  Widget _buildModelCard(BuildContext context, int index, String modelKey) {
     final visual = AppIllustrations.modelVisuals[modelKey]!;
     return Container(
-      height: 110,
+      height: 130,
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -144,57 +173,98 @@ class LandingScreen extends ConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => context.go(RouteNames.groupCreate, extra: modelKey),
-          child: Container(
-            decoration: BoxDecoration(gradient: visual.gradient),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Online image background
+              if (visual.imageUrl != null)
+                CachedNetworkImage(
+                  imageUrl: visual.imageUrl!,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, __, ___) => const SizedBox(),
+                ),
+              // Gradient overlay
+              Positioned.fill(
+                child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(visual.icon, color: Colors.white, size: 24),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        visual.title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        visual.subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ],
+                    gradient: LinearGradient(
+                      colors: [
+                        visual.gradient.colors[0].withValues(alpha: 0.9),
+                        visual.gradient.colors[1].withValues(alpha: 0.75),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
                   ),
                 ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.white.withValues(alpha: 0.6),
-                  size: 16,
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(visual.icon, color: Colors.white, size: 26),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            visual.title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            visual.subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white.withValues(alpha: 0.8),
+                        size: 14,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
+    ).animate().fadeIn(
+      duration: 400.ms,
+      delay: (index * 80).ms,
+    ).slideX(
+      begin: 0.05,
+      curve: Curves.easeOutCubic,
     );
   }
 
@@ -239,20 +309,17 @@ class LandingScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Search existing groups and request to join',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textTertiary,
-                  ),
+                  style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
                 ),
               ],
             ),
           ),
           TextButton(
             onPressed: () => context.go(RouteNames.groupJoin),
-            child: const Text('Search'),
+            child: const Text('Search', style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 500.ms, delay: 600.ms);
   }
 }
