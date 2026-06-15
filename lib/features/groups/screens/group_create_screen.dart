@@ -377,6 +377,60 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _navItem(Icons.home_outlined, 'Home', () { context.go(RouteNames.home); }),
+              _navItem(Icons.people_outline, 'Members', null),
+              const SizedBox(width: 48),
+              _navItem(Icons.timeline_outlined, 'Timeline', null),
+              _navItem(Icons.menu, 'Menu', () {
+                final ctx = context;
+                Scaffold.of(ctx).openEndDrawer();
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(IconData icon, String label, void Function()? onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: AppColors.textTertiary, size: 24),
+              const SizedBox(height: 2),
+              Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.textTertiary)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -457,10 +511,10 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            _drawerItem(Icons.home_outlined, 'Home', () { Navigator.pop(context); context.go(RouteNames.dashboard); }),
+            _drawerItem(Icons.home_outlined, 'Home', () { Navigator.pop(context); context.go(RouteNames.home); }),
             _drawerItem(Icons.group_add_outlined, 'Create Group', () { Navigator.pop(context); }),
-            _drawerItem(Icons.search_outlined, 'Join Group', () { Navigator.pop(context); context.go(RouteNames.joinGroup); }),
-            _drawerItem(Icons.person_outline, 'Profile', () { Navigator.pop(context); context.go(RouteNames.profile); }),
+            _drawerItem(Icons.search_outlined, 'Join Group', () { Navigator.pop(context); context.go(RouteNames.groupJoin); }),
+            _drawerItem(Icons.person_outline, 'Profile', () { Navigator.pop(context); context.go(RouteNames.landing); }),
             const Spacer(),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -490,7 +544,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
         if (modelName != null) ...[
           const SizedBox(height: 8),
           Container(
-            height: 160,
+            height: 180,
             width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
@@ -503,34 +557,23 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
               fit: StackFit.expand,
               children: [
                 if (widget.modelId != null)
-                  Positioned(
-                    right: -20,
-                    top: -20,
+                  Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: Image.network(
                         ModelVisual.imageUrlForModel(widget.modelId!),
-                        width: 220,
-                        height: 220,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => const SizedBox(),
                       ),
                     ),
                   ),
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.black.withValues(alpha: 0.5), Colors.transparent],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(20),
+                Positioned(
+                  left: 20,
+                  right: 20,
+                  bottom: 20,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
                         children: [
@@ -543,14 +586,18 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                       const SizedBox(height: 4),
                       Text(
                         _modelConfigs[widget.modelId]?['desc'] as String? ?? '',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          shadows: [Shadow(color: Colors.black54, blurRadius: 8)],
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-          ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.05, duration: 400.ms),
+          ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.05, duration: 400.ms),
           const SizedBox(height: 24),
         ],
         const Text('Group Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
@@ -985,10 +1032,10 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
     );
   }
 
-  Widget _pickButton(BuildContext ctx, StateSetter setDialogState, IconData icon, String label, VoidCallback onTap) {
+  Widget _pickButton(BuildContext ctx, StateSetter setDialogState, IconData icon, String label, void Function() onTap) {
     return GestureDetector(
-      onTap: () async {
-        await onTap();
+      onTap: () {
+        onTap();
         setDialogState(() {});
       },
       child: Container(
