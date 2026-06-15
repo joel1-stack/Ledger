@@ -344,16 +344,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        actions: [
-          Builder(
-            builder: (ctx) => IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
-            ),
-          ),
-        ],
       ),
-      endDrawer: _buildDrawer(),
       body: Column(
         children: [
           // Step indicator

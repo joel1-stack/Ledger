@@ -26,92 +26,12 @@ class GroupModelScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Choose a Model'),
         backgroundColor: AppColors.background,
-        actions: [
-          Builder(
-            builder: (ctx) => IconButton(
-              icon: const Icon(Icons.menu_rounded),
-              onPressed: () => Scaffold.of(ctx).openDrawer(),
-            ),
-          ),
-        ],
       ),
-      endDrawer: _buildDrawer(context),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _modelKeys.length,
         itemBuilder: (_, i) => _buildModelCard(context, i, _modelKeys[i]),
       ),
-    );
-  }
-
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      child: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(Icons.auto_graph, color: Colors.white, size: 24),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Ledger',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'The record your community keeps forever',
-                    style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.8)),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  _drawerItem(Icons.home, 'Home', () {
-                    Navigator.pop(context);
-                    context.go(RouteNames.home);
-                  }),
-                  _drawerItem(Icons.add_circle_outline, 'Create Group', () {
-                    Navigator.pop(context);
-                  }),
-                  _drawerItem(Icons.login, 'Join Group', () {
-                    Navigator.pop(context);
-                    context.go(RouteNames.groupJoin);
-                  }),
-                  const Divider(height: 32),
-                  _drawerItem(Icons.person_outline, 'My Profile', () => Navigator.pop(context)),
-                  _drawerItem(Icons.help_outline, 'Help & Support', () => Navigator.pop(context)),
-                  const Divider(height: 32),
-                  _drawerItem(Icons.auto_graph, 'About Ledger', () => Navigator.pop(context)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _drawerItem(IconData icon, String title, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary, size: 22),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
-      onTap: onTap,
     );
   }
 

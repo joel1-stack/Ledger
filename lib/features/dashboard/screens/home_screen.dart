@@ -229,9 +229,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               _navItem(0, Icons.home_outlined, Icons.home, 'Home'),
               _navItem(1, Icons.people_outline, Icons.people, 'Members'),
-              const SizedBox(width: 48), // space for FAB
+              const SizedBox(width: 48),
               _navItem(3, Icons.timeline_outlined, Icons.timeline, 'Timeline'),
-              _navItem(4, Icons.menu, Icons.menu, 'Menu'),
+              Builder(
+                builder: (ctx) => Expanded(
+                  child: GestureDetector(
+                    onTap: () => Scaffold.of(ctx).openDrawer(),
+                    child: Container(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.menu, color: AppColors.textTertiary, size: 24),
+                          const SizedBox(height: 2),
+                          const Text('Menu', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.textTertiary)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -245,8 +262,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: GestureDetector(
         onTap: () {
           if (index == 4) {
-            final ctx = context;
-            Scaffold.of(ctx).openDrawer();
             return;
           }
           final gid = ref.read(currentGroupIdProvider);
