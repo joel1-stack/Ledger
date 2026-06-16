@@ -106,7 +106,7 @@ class InviteMembersScreen extends ConsumerWidget {
 
                 const SizedBox(height: 24),
                 TextButton(
-                  onPressed: () => context.go(RouteNames.home),
+                  onPressed: () => context.push(RouteNames.home),
                   child: const Text('Skip, I\'ll invite later'),
                 ),
                 const SizedBox(height: 32),

@@ -136,7 +136,7 @@ class LandingScreen extends ConsumerWidget {
                   width: double.infinity,
                   height: 48,
                   child: OutlinedButton.icon(
-                    onPressed: () => context.go(RouteNames.groupJoin),
+                    onPressed: () => context.push(RouteNames.groupJoin),
                     icon: const Icon(Icons.login, size: 18),
                     label: const Text('Have a code? Join Group'),
                     style: OutlinedButton.styleFrom(
@@ -168,7 +168,7 @@ class LandingScreen extends ConsumerWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => context.go(RouteNames.groupCreate, extra: modelKey),
+          onTap: () => context.push(RouteNames.groupCreate, extra: modelKey),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -266,7 +266,7 @@ class LandingScreen extends ConsumerWidget {
             ),
           ),
           TextButton(
-            onPressed: () => context.go(RouteNames.groupJoin),
+            onPressed: () => context.push(RouteNames.groupJoin),
             child: const Text('Search', style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],

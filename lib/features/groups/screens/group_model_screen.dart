@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_illustrations.dart';
-import '../../../core/providers/auth_provider.dart';
 import '../../../router/app_router.dart';
 
 class GroupModelScreen extends ConsumerStatefulWidget {
@@ -57,58 +56,6 @@ class _GroupModelScreenState extends ConsumerState<GroupModelScreen> {
     );
   }
 
-  Widget _buildDrawer() {
-    final user = ref.read(currentUserProvider);
-    return Drawer(
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    child: const Icon(Icons.person, color: Colors.white),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(user?.displayName ?? 'Ledger User',
-                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                  const Text('Community Operating System',
-                      style: TextStyle(color: Colors.white70, fontSize: 13)),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  _drawerItem(Icons.home_outlined, 'Home', () { Navigator.pop(context); context.go(RouteNames.home); }),
-                  _drawerItem(Icons.people_outline, 'My Groups', () { Navigator.pop(context); context.go(RouteNames.groupList); }),
-                  _drawerItem(Icons.timeline_outlined, 'Timeline', () => Navigator.pop(context)),
-                  _drawerItem(Icons.bar_chart_outlined, 'Reports', () => Navigator.pop(context)),
-                  _drawerItem(Icons.notifications_outlined, 'Notifications', () => Navigator.pop(context)),
-                  const Divider(),
-                  _drawerItem(Icons.settings_outlined, 'Settings', () => Navigator.pop(context)),
-                  _drawerItem(Icons.help_outline, 'Help', () => Navigator.pop(context)),
-                  _drawerItem(Icons.logout, 'Logout', () {
-                    Navigator.pop(context);
-                    ref.read(authServiceProvider).signOut();
-                    context.go(RouteNames.landing);
-                  }, color: AppColors.error),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildCard(BuildContext context, int index, String modelKey) {
     final visual = AppIllustrations.modelVisuals[modelKey]!;
     return Container(
@@ -124,7 +71,7 @@ class _GroupModelScreenState extends ConsumerState<GroupModelScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => context.go(RouteNames.groupCreate, extra: modelKey),
+          onTap: () => context.push(RouteNames.groupCreate, extra: modelKey),
           child: Stack(
             fit: StackFit.expand,
             children: [

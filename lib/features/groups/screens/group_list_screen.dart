@@ -73,7 +73,7 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
                 child: SizedBox(
                   height: 52,
                   child: ElevatedButton.icon(
-                    onPressed: () => context.go(RouteNames.groupModel),
+                    onPressed: () => context.push(RouteNames.groupModel),
                     icon: const Icon(Icons.add),
                     label: const Text(AppStrings.createGroup),
                     style: ElevatedButton.styleFrom(
@@ -245,7 +245,7 @@ class _GroupListScreenState extends ConsumerState<GroupListScreen> {
             ),
             onTap: () {
               ref.read(currentGroupIdProvider.notifier).state = group.id;
-              context.go(RouteNames.home);
+              context.push(RouteNames.home);
             },
           ),
         );

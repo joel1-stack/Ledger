@@ -142,7 +142,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               SizedBox(
                 width: double.infinity, height: 52,
                 child: ElevatedButton.icon(
-                  onPressed: () => context.go(RouteNames.groupList),
+                  onPressed: () => context.push(RouteNames.groupList),
                   icon: const Icon(Icons.group),
                   label: const Text('My Groups'),
                   style: ElevatedButton.styleFrom(
@@ -155,7 +155,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               SizedBox(
                 width: double.infinity, height: 52,
                 child: OutlinedButton.icon(
-                  onPressed: () => context.go(RouteNames.groupModel),
+                  onPressed: () => context.push(RouteNames.groupModel),
                   icon: const Icon(Icons.add_circle_outline),
                   label: const Text('Create New Group'),
                   style: OutlinedButton.styleFrom(
@@ -167,7 +167,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               SizedBox(
                 width: double.infinity, height: 52,
                 child: TextButton.icon(
-                  onPressed: () => context.go(RouteNames.groupJoin),
+                  onPressed: () => context.push(RouteNames.groupJoin),
                   icon: const Icon(Icons.search),
                   label: const Text('Search Existing Groups'),
                 ),

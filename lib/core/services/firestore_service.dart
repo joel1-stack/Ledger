@@ -67,6 +67,8 @@ class FirestoreService {
     final snap = await _groups
         .where('nameSearch', isGreaterThanOrEqualTo: q)
         .where('nameSearch', isLessThan: '$q\u{f8ff}')
+        .orderBy('nameSearch')
+        .limit(20)
         .get();
     return snap.docs.map((d) => GroupModel.fromMap(d.data() as Map<String, dynamic>, d.id)).toList();
   }

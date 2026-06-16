@@ -238,7 +238,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
       if (mounted) {
         ref.read(currentGroupIdProvider.notifier).state = group.id;
         if (simMatch) {
-          context.go(RouteNames.inviteMembers, extra: group.id);
+          context.push(RouteNames.inviteMembers, extra: group.id);
         } else {
           _showOtpDialog(group.id, phone, memberName);
         }
@@ -261,7 +261,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Skipped verification. You can verify later in settings.'), backgroundColor: AppColors.warning),
       );
-      context.go(RouteNames.inviteMembers, extra: groupId);
+      context.push(RouteNames.inviteMembers, extra: groupId);
     }
 
     showDialog(
@@ -312,7 +312,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
                 try {
                   await auth.linkPhone(vid!, codeCtrl.text);
                   if (ctx.mounted) Navigator.pop(ctx);
-                  if (mounted) context.go(RouteNames.inviteMembers, extra: groupId);
+                  if (mounted) context.push(RouteNames.inviteMembers, extra: groupId);
                 } catch (e) {
                   setDialogState(() => errorMsg = 'Invalid OTP. Try again or skip.');
                 }
@@ -369,60 +369,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
-    );
-  }
 
-  Widget _buildBottomNav() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _navItem(Icons.home_outlined, 'Home', () { context.go(RouteNames.home); }),
-              _navItem(Icons.people_outline, 'Members', null),
-              const SizedBox(width: 48),
-              _navItem(Icons.timeline_outlined, 'Timeline', null),
-              _navItem(Icons.menu, 'Menu', () {
-                final ctx = context;
-                Scaffold.of(ctx).openEndDrawer();
-              }),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _navItem(IconData icon, String label, void Function()? onTap) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: AppColors.textTertiary, size: 24),
-              const SizedBox(height: 2),
-              Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.textTertiary)),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -472,57 +419,6 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
       height: 2,
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(color: isActive ? AppColors.primary : AppColors.divider),
-    );
-  }
-
-  Widget _buildDrawer() {
-    final user = ref.read(currentUserProvider);
-    return Drawer(
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    child: const Icon(Icons.person, color: Colors.white, size: 30),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(user?.displayName ?? 'Create Group', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text('Start a new chama', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            _drawerItem(Icons.home_outlined, 'Home', () { Navigator.pop(context); context.go(RouteNames.home); }),
-            _drawerItem(Icons.group_add_outlined, 'Create Group', () { Navigator.pop(context); }),
-            _drawerItem(Icons.search_outlined, 'Join Group', () { Navigator.pop(context); context.go(RouteNames.groupJoin); }),
-            _drawerItem(Icons.person_outline, 'Profile', () { Navigator.pop(context); context.go(RouteNames.landing); }),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text('Ledger v1.0', style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _drawerItem(IconData icon, String label, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-      onTap: onTap,
     );
   }
 
