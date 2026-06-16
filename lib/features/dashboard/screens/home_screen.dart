@@ -64,7 +64,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: _buildAppBar(g),
-          drawer: _buildDrawer(context, g, ref),
           body: _buildBody(g, membersAsync, contributionsAsync, eventsAsync, timelineAsync, approvalsAsync),
           floatingActionButton: _buildFAB(context, g.id),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -198,11 +197,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           icon: const Icon(Icons.notifications_outlined),
           onPressed: () {},
         ),
-        Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
+        IconButton(
+          icon: const Icon(Icons.person_outline),
+          onPressed: () {},
         ),
       ],
     );
@@ -231,16 +228,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _navItem(1, Icons.people_outline, Icons.people, 'Members'),
               const SizedBox(width: 48),
               _navItem(3, Icons.timeline_outlined, Icons.timeline, 'Timeline'),
-              Builder(
-                builder: (ctx) => Expanded(
-                  child: GestureDetector(
-                    onTap: () => Scaffold.of(ctx).openDrawer(),
-                    child: Container(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.menu, color: AppColors.textTertiary, size: 24),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.person_outline, color: AppColors.textTertiary, size: 24),
                           const SizedBox(height: 2),
                           const Text('Menu', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.textTertiary)),
                         ],
@@ -373,111 +369,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildDrawer(BuildContext context, GroupModel group, WidgetRef ref) {
-    final pendingApprovals = ref.watch(pendingApprovalsProvider(group.id));
-    final pendingCount = pendingApprovals.asData?.value.length ?? 0;
-    return Drawer(
-      child: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: Colors.white,
-                    child: Text(
-                      group.name[0].toUpperCase(),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: AppColors.primary),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    group.name,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${group.stats.totalMembers} members',
-                    style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8)),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  _sectionHeader('QUICK ACTIONS'),
-                  _drawerItem(Icons.event, 'Events', () { Navigator.pop(context); _navigateTo(EventListScreen(groupId: group.id)); }),
-                  _drawerItem(Icons.verified_user, 'Approvals', () { Navigator.pop(context); _navigateTo(ApprovalListScreen(groupId: group.id)); },
-                      badge: pendingCount > 0 ? '$pendingCount' : null),
-                  _drawerItem(Icons.bar_chart, 'Reports', () { Navigator.pop(context); _navigateTo(GenerateReportScreen(groupId: group.id)); }),
-                  _drawerItem(Icons.folder, 'Documents', () { Navigator.pop(context); _navigateTo(DocumentListScreen(groupId: group.id)); }),
-                  _drawerItem(Icons.campaign, 'Announcements', () { Navigator.pop(context); _showAnnouncementDialog(context); }),
-                  _sectionHeader('MANAGE'),
-                  _drawerItem(Icons.settings, 'Group Settings', () {
-                    Navigator.pop(context);
-                    _navigateTo(GroupSettingsScreen(groupId: group.id));
-                  }),
-                  _drawerItem(Icons.link, 'Invite Members', () { Navigator.pop(context); }),
-                  _sectionHeader('ME'),
-                  _drawerItem(Icons.person, 'My Profile', () { Navigator.pop(context); }),
-                  _drawerItem(Icons.help_outline, 'Help & Support', () { Navigator.pop(context); }),
-                  const Divider(height: 32),
-                  _drawerItem(Icons.swap_horiz, 'Switch Group', () {
-                    Navigator.pop(context);
-                    ref.read(currentGroupIdProvider.notifier).state = null;
-                    context.go(RouteNames.groupList);
-                  }),
-                  _drawerItem(Icons.logout, 'Log Out', () async {
-                    Navigator.pop(context);
-                    await ref.read(authServiceProvider).signOut();
-                    if (context.mounted) context.go(RouteNames.landing);
-                  }),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _sectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textTertiary,
-          letterSpacing: 1,
-        ),
-      ),
-    );
-  }
-
-  Widget _drawerItem(IconData icon, String title, VoidCallback onTap, {String? badge}) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary, size: 22),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
-      trailing: badge != null
-          ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(12)),
-              child: Text(badge, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-            )
-          : null,
-      onTap: onTap,
     );
   }
 

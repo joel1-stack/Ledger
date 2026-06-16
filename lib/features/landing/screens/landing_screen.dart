@@ -156,17 +156,13 @@ class LandingScreen extends ConsumerWidget {
   Widget _buildModelCard(BuildContext context, int index, String modelKey) {
     final visual = AppIllustrations.modelVisuals[modelKey]!;
     return Container(
-      height: 130,
+      height: 140,
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.10),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),
       child: Material(
@@ -176,96 +172,51 @@ class LandingScreen extends ConsumerWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Online image background
               if (visual.imageUrl != null)
-                CachedNetworkImage(
-                  imageUrl: visual.imageUrl!,
-                  fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const SizedBox(),
-                ),
-              // Gradient overlay
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        visual.gradient.colors[0].withValues(alpha: 0.9),
-                        visual.gradient.colors[1].withValues(alpha: 0.75),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                  ),
+                CachedNetworkImage(imageUrl: visual.imageUrl!, fit: BoxFit.cover, errorWidget: (_, __, ___) => const SizedBox()),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(visual.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.white,
+                          shadows: [Shadow(color: Colors.black45, blurRadius: 6)],
+                        )),
+                    const SizedBox(height: 2),
+                    Text(visual.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white,
+                          shadows: [Shadow(color: Colors.black45, blurRadius: 4)],
+                        )),
+                  ],
                 ),
               ),
-              // Content
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(visual.icon, color: Colors.white, size: 26),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            visual.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            visual.subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.white.withValues(alpha: 0.85),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.white.withValues(alpha: 0.8),
-                        size: 14,
-                      ),
-                    ),
-                  ],
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 8)],
+                  ),
+                  child: const Text('Use Template', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
           ),
         ),
       ),
-    ).animate().fadeIn(
-      duration: 400.ms,
-      delay: (index * 80).ms,
-    ).slideX(
-      begin: 0.05,
-      curve: Curves.easeOutCubic,
-    );
+    ).animate().fadeIn(duration: 400.ms, delay: (index * 80).ms).slideY(begin: 0.05, curve: Curves.easeOutCubic);
   }
 
   Widget _buildSearchCard(BuildContext context) {
