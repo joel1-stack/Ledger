@@ -227,24 +227,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _navItem(0, Icons.home_outlined, Icons.home, 'Home'),
               _navItem(1, Icons.people_outline, Icons.people, 'Members'),
               const SizedBox(width: 48),
-              _navItem(3, Icons.timeline_outlined, Icons.timeline, 'Timeline'),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.person_outline, color: AppColors.textTertiary, size: 24),
-                          const SizedBox(height: 2),
-                          const Text('Menu', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.textTertiary)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              _navItem(2, Icons.timeline_outlined, Icons.timeline, 'Timeline'),
+              _navItem(3, Icons.description_outlined, Icons.description, 'Docs'),
+              _navItem(4, Icons.more_horiz, Icons.more_horiz, 'More'),
             ],
           ),
         ),
@@ -385,13 +370,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return _buildDashboard(group, membersAsync, contributionsAsync, eventsAsync, timelineAsync, approvalsAsync);
       case 1:
         return MemberListScreen(groupId: group.id);
-      case 3:
+      case 2:
         return TimelineScreen(groupId: group.id);
+      case 3:
+        return DocumentListScreen(groupId: group.id);
       case 4:
-        return const SizedBox();
+        return _buildMoreScreen(group);
       default:
         return const SizedBox();
     }
+  }
+
+  Widget _buildMoreScreen(GroupModel group) {
+    final groupId = group.id;
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const Text('More', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        const SizedBox(height: 16),
+        _moreTile(Icons.rule, 'Group Rules', AppColors.primary, () => _navigateTo(GroupSettingsScreen(groupId: groupId))),
+        _moreTile(Icons.verified_user, 'Approvals', AppColors.warning, () => _navigateTo(ApprovalListScreen(groupId: groupId))),
+        _moreTile(Icons.bar_chart, 'Reports', AppColors.info, () => _navigateTo(GenerateReportScreen(groupId: groupId))),
+        _moreTile(Icons.settings, 'Settings', AppColors.textTertiary, () => _navigateTo(GroupSettingsScreen(groupId: groupId))),
+        _moreTile(Icons.share, 'Share Invite Code', AppColors.accent, () {}),
+      ],
+    );
+  }
+
+  Widget _moreTile(IconData icon, String title, Color color, VoidCallback onTap) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, color: color, size: 22),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+        onTap: onTap,
+      ),
+    );
   }
 
   Widget _buildDashboard(

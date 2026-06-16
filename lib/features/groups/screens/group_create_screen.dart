@@ -189,6 +189,7 @@ class _GroupCreateScreenState extends ConsumerState<GroupCreateScreen> {
       final simMatch = _readSim != null && _readSim == phone;
       final group = await service.createGroup({
         'name': name,
+        'nameSearch': name.toLowerCase(),
         'description': _descCtrl.text.trim(),
         'inviteCode': IdGenerator.generateInviteCode(),
         'createdBy': user.uid,

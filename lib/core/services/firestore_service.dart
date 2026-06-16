@@ -61,6 +61,26 @@ class FirestoreService {
     return GroupModel.fromMap(snap.docs.first.data() as Map<String, dynamic>, snap.docs.first.id);
   }
 
+  Future<List<GroupModel>> searchGroupsByName(String query) async {
+    if (query.trim().isEmpty) return [];
+    final q = query.trim().toLowerCase();
+    final snap = await _groups
+        .where('nameSearch', isGreaterThanOrEqualTo: q)
+        .where('nameSearch', isLessThan: '$q\u{f8ff}')
+        .get();
+    return snap.docs.map((d) => GroupModel.fromMap(d.data() as Map<String, dynamic>, d.id)).toList();
+  }
+
+  Future<void> sendJoinRequest(String groupId, String userId, String name, String phone) async {
+    await _groups.doc(groupId).collection('joinRequests').doc(userId).set({
+      'userId': userId,
+      'name': name,
+      'phone': phone,
+      'status': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> updateGroup(String groupId, Map<String, dynamic> data) async {
     await _groups.doc(groupId).update(data);
   }
